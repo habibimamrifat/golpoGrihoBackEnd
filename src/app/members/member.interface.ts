@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
 export type TName = {
   firstName: string;
@@ -18,7 +18,7 @@ export type TAddress = {
 
 export type TNomini = {
   name: TName;
-  nominiImg:string;
+  nominiImg: string;
   email: string;
   mob: string;
   mobAlt?: string;
@@ -29,15 +29,15 @@ export type TNomini = {
 };
 
 export type TMember = {
-  id?:string;
-  memberImg:string;
+  id?: string;
+  memberImg: string;
   name: TName;
-  user:Types.ObjectId;
+  user: Types.ObjectId;
   mob: string;
   mobAlt?: string;
   memberNID: string;
   membersNomini: TNomini;
   memberPermanentAddress: TAddress;
   memberPresentAddress: TAddress;
-  depositList?:Types.ObjectId
+  installmentList: Types.ObjectId;
 };

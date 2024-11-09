@@ -8,5 +8,6 @@ const userRouts = express.Router();
 
 
 userRouts.post('/createUser', validator(memberValidations.createMemberZodSchema), UserController.createMember);
+userRouts.get("/logIn/:email/:password", UserController.logInUser)
 
 export const UserRouts = userRouts;

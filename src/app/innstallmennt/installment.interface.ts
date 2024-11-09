@@ -1,3 +1,5 @@
+import { Date } from 'mongoose';
+
 export type TMonth =
   | 'January'
   | 'February'
@@ -12,16 +14,16 @@ export type TMonth =
   | 'November'
   | 'December';
 
-
-export type TDeposit = {
+export type TInstallment = {
   year: string;
   month: TMonth;
-  depositAmount:number
-  status:"waiting"|"declined"|"approved";
+  depositAmount: number;
+  status: 'waiting' | 'declined' | 'approved';
+  installmentDate?: Date;
 };
 
-export type TDepositList = {
+export type TInstallmentList = {
   id: string;
   totalDeposit: number;
-  depositList: TDeposit[];
+  depositList: TInstallment[];
 };

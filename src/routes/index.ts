@@ -1,7 +1,8 @@
 import express from "express"
 import { UserRouts } from "../app/user/user.routs"
 import memberRoutes from "../app/members/member.rout"
-import depositRout from "../app/deposits/deposit.rout"
+import installmenttRout from "../app/innstallmennt/installment.rout"
+
 
 
 const router = express.Router()
@@ -19,7 +20,7 @@ const mouleRouts = [
     },
     {
         path:"/deposit",
-        router:depositRout
+        router:installmenttRout
     }
 ]
 

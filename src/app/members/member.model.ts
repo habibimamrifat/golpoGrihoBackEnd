@@ -19,7 +19,7 @@ const addressSchema = new Schema<TAddress>({
 
 const nominiSchema = new Schema<TNomini>({
   name: { type: nameSchema, required: true },
-  nominiImg:{type:String, required:true},
+  nominiImg: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   nominiPresentAddress: { type: addressSchema, required: true },
   nominiPermanentAddress: { type: addressSchema, required: true },
@@ -52,14 +52,14 @@ const nominiSchema = new Schema<TNomini>({
 });
 
 const memberSchema = new Schema<TMember>({
-  id:{type:String, required:true},
-  memberImg:{type:String, required:true},
+  id: { type: String, required: true },
+  memberImg: { type: String, required: true },
   name: { type: nameSchema, required: true },
   user: {
     type: Schema.Types.ObjectId,
     unique: true,
     ref: 'User',
-    required:true,
+    required: true,
   },
   mob: {
     type: String,
@@ -89,7 +89,12 @@ const memberSchema = new Schema<TMember>({
   membersNomini: { type: nominiSchema, required: true },
   memberPermanentAddress: { type: addressSchema, required: true },
   memberPresentAddress: { type: addressSchema, required: true },
-  depositList:{type:Schema.Types.ObjectId, unique:true, ref:"Deposit"}
+  installmentList: {
+    type: Schema.Types.ObjectId,
+    unique: true,
+    ref: 'Installment',
+    required:true
+  },
 });
 
 const memberModel = model<TMember>('Member', memberSchema);

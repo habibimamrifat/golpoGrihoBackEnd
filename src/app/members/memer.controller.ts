@@ -13,20 +13,8 @@ const findSingleMember = asyncCatch(async (req, res) => {
   });
 });
 
-const logInMember = asyncCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { email, passWord } = req.params;
 
-    const result = await memberServices.logInMember(email, passWord);
-    res.status(200).json({
-      success: true,
-      message: 'the member is found',
-      body: result,
-    });
-  },
-);
 
 export const memberController = {
-  findSingleMember,
-  logInMember,
+  findSingleMember
 };
