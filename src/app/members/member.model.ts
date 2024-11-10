@@ -99,4 +99,17 @@ const memberSchema = new Schema<TMember>({
 
 const memberModel = model<TMember>('Member', memberSchema);
 
+
+// fail safe for indexing
+async function ensureIndexes() {
+  await memberModel.collection.createIndex({ email: 1 }, { unique: true });
+  await memberModel.collection.createIndex({ mob: 1 }, { unique: true });
+  await memberModel.collection.createIndex({ memberNID: 1 }, { unique: true });
+  await memberModel.collection.createIndex({ user: 1 }, { unique: true });
+  await memberModel.collection.createIndex({ installmentList: 1 }, { unique: true });
+  console.log('Indexes ensured for unique fields');
+}
+
+ensureIndexes().catch((err) => console.error('Error ensuring indexes:', err));
+
 export default memberModel;

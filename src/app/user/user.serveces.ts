@@ -5,7 +5,8 @@ import memberModel from '../members/member.model';
 import idGearator from './idGenarator.utill';
 import { TUser } from './user.interface';
 import { UserModel } from './user.model';
-import { match } from "assert";
+import mongoose from "mongoose";
+
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   user.role="admin"
@@ -13,20 +14,34 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   const id =await idGearator(memberData.name.lastName)
   user.id=id
 
-  const createUser =await  UserModel.create(user)
-  if(Object.keys(createUser).length)
-  {
-    const createInstallmentList = await InstallmentListtModel.create({id:id})
-    if(Object.keys(createInstallmentList).length)
-      {
-        memberData.id= id;
-        memberData.user=createUser._id;
-        memberData.installmentList=createInstallmentList._id
+  // session started
+ const session =await mongoose.startSession()
+  try{
+    session.startTransaction()
 
-        console.log(memberData.user, memberData.installmentList)
-        const newMember =await memberModel.create(memberData)
-        return newMember
-      }
+    const createUser =await  UserModel.create([user],{session})
+    // console.log(createUser)
+    if(createUser && Object.keys(createUser).length)
+    {
+      const createInstallmentList = await InstallmentListtModel.create([{id:id}], {session})
+      if(createInstallmentList && Object.keys(createInstallmentList).length)
+        {
+          memberData.id= id;
+          memberData.user=createUser[0]._id;
+          memberData.installmentList=createInstallmentList[0]._id
+  
+          console.log(memberData.user, memberData.installmentList)
+          const newMember =await memberModel.create([memberData],{session})
+          await session.commitTransaction()
+          return newMember
+        }
+        await session.abortTransaction();
+    }
+  }
+  catch(err)
+  {
+    session.endSession();
+    throw new Error("something went wrong")
   }
   
 };
