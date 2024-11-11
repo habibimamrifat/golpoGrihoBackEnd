@@ -97,7 +97,6 @@ const memberSchema = new Schema<TMember>({
   },
 });
 
-const memberModel = model<TMember>('Member', memberSchema);
 
 memberSchema.pre('save', async function (next) {
   console.log("yoo")
@@ -119,6 +118,10 @@ memberSchema.pre('save', async function (next) {
   }
   next()
 });
+
+const memberModel = model<TMember>('Member', memberSchema);
+
+
 
 // fail safe for indexing
 // async function ensureIndexes() {

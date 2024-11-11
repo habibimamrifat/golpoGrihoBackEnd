@@ -17,7 +17,10 @@ export type TMonth =
 export type TInstallment = {
   year: string;
   month: TMonth;
-  depositAmount: number;
+  installmentAmount: number;
+  
+  transactionImg?: string;
+  acceptedBy?: string;
   status: 'waiting' | 'declined' | 'approved';
   installmentDate?: Date;
 };

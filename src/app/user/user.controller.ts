@@ -8,7 +8,7 @@ const createMember = asyncCatch(
     const member = req.body.member;
     const user = req.body.user;
     // console.log("i am the member",member)
-    console.log('yoooo', member, user);
+    // console.log('yoooo', member, user);
 
     const result = await UserServices.createAMemberInDb(user, member);
 

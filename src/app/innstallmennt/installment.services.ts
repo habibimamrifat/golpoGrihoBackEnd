@@ -17,7 +17,13 @@ const makeAInstallment = async (depositData: any) => {
       { $push: { depositList: deposit } },
       { new: true },
     );
+   if(result)
+   {
     return result;
+   }
+   else{
+    throw new Error("Something Went Wrong")
+   }
   }
 };
 

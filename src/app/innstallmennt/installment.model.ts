@@ -33,9 +33,18 @@ const InstallmentSchema = new Schema<TInstallment>({
     enum: monthEnum, // Using enum to restrict to the months
     required: true,
   },
-  depositAmount: {
+  installmentAmount: {
     type: Number,
     required: true,
+    min:1000
+  },
+  transactionImg:{
+    type:String,
+    required:false
+  },
+  acceptedBy:{
+    type:String,
+    required:false
   },
   status: {
     type: String,
@@ -66,6 +75,20 @@ const InstallmentListSchema = new Schema<TInstallmentList>({
     default: [],
     required: true,
   },
+});
+
+InstallmentListSchema.pre('save', async function (next) {
+  console.log('yoo');
+  const result = await InstallmentListtModel.findOne({
+    id: this.id,
+  });
+
+  console.log('result', result);
+
+  if (result) {
+    throw new Error('This user already Exists');
+  }
+  next();
 });
 
 // Create Mongoose models
