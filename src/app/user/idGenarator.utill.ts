@@ -1,4 +1,3 @@
-import { string } from "zod"
 import { UserModel } from "./user.model"
 
 const findLastRegisteredUser = async()=>{

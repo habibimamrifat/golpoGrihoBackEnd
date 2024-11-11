@@ -93,23 +93,43 @@ const memberSchema = new Schema<TMember>({
     type: Schema.Types.ObjectId,
     unique: true,
     ref: 'Installment',
-    required:true
+    required: true,
   },
 });
 
 const memberModel = model<TMember>('Member', memberSchema);
 
+memberSchema.pre('save', async function (next) {
+  console.log("yoo")
+  const result = await memberModel.findOne({
+    $or: [
+      { id: this.id },
+      { mob: this.mob },
+      { memberNID: this.memberNID },
+      { 'membersNomini.mob': this.membersNomini.mob },
+      { 'membersNomini.nominiNID': this.membersNomini.nominiNID },
+    ]
+  });
+
+  console.log("result", result)
+
+  if(result)
+  {
+    throw new Error("This user already Exists")
+  }
+  next()
+});
 
 // fail safe for indexing
-async function ensureIndexes() {
-  await memberModel.collection.createIndex({ email: 1 }, { unique: true });
-  await memberModel.collection.createIndex({ mob: 1 }, { unique: true });
-  await memberModel.collection.createIndex({ memberNID: 1 }, { unique: true });
-  await memberModel.collection.createIndex({ user: 1 }, { unique: true });
-  await memberModel.collection.createIndex({ installmentList: 1 }, { unique: true });
-  console.log('Indexes ensured for unique fields');
-}
+// async function ensureIndexes() {
+//   await memberModel.collection.createIndex({ email: 1 }, { unique: true });
+//   await memberModel.collection.createIndex({ mob: 1 }, { unique: true });
+//   await memberModel.collection.createIndex({ memberNID: 1 }, { unique: true });
+//   await memberModel.collection.createIndex({ user: 1 }, { unique: true });
+//   await memberModel.collection.createIndex({ installmentList: 1 }, { unique: true });
+//   console.log('Indexes ensured for unique fields');
+// }
 
-ensureIndexes().catch((err) => console.error('Error ensuring indexes:', err));
+// ensureIndexes().catch((err) => console.error('Error ensuring indexes:', err));
 
 export default memberModel;

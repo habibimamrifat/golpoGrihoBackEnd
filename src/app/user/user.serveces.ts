@@ -9,41 +9,44 @@ import mongoose from "mongoose";
 
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
-  user.role="admin"
-  user.requestState="approved"
-  const id =await idGearator(memberData.name.lastName)
-  user.id=id
+  user.role = "admin";
+  user.requestState = "approved";
+  const id = await idGearator(memberData.name.lastName);
+  user.id = id;
 
-  // session started
- const session =await mongoose.startSession()
-  try{
-    session.startTransaction()
+  // Start a session
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    const createUser =await  UserModel.create([user],{session})
-    // console.log(createUser)
-    if(createUser && Object.keys(createUser).length)
-    {
-      const createInstallmentList = await InstallmentListtModel.create([{id:id}], {session})
-      if(createInstallmentList && Object.keys(createInstallmentList).length)
-        {
-          memberData.id= id;
-          memberData.user=createUser[0]._id;
-          memberData.installmentList=createInstallmentList[0]._id
-  
-          console.log(memberData.user, memberData.installmentList)
-          const newMember =await memberModel.create([memberData],{session})
-          await session.commitTransaction()
-          return newMember
-        }
-        await session.abortTransaction();
-    }
-  }
-  catch(err)
-  {
+  try {
+    
+    const userInstance = new UserModel(user);
+    await userInstance.save({ session });
+
+   
+    const installmentInstance = new InstallmentListtModel({ id: id });
+    await installmentInstance.save({ session });
+
+    
+    memberData.id = id;
+    memberData.user = userInstance._id;
+    memberData.installmentList = installmentInstance._id;
+    
+    const memberInstance = new memberModel(memberData);
+    await memberInstance.save({ session });
+
+    
+    await session.commitTransaction();
+    return memberInstance;
+  } catch (err) {
+    // Abort transaction on error
+    await session.abortTransaction();
+    console.error("Transaction failed:", err);
+    throw new Error("Something went wrong");
+  } finally {
+    // End the session
     session.endSession();
-    throw new Error("something went wrong")
   }
-  
 };
 
 const logInUser = async (email: string, password: string) => {
