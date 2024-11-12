@@ -1,4 +1,6 @@
 import { Types } from 'mongoose';
+import { TUser } from '../user/user.interface';
+
 
 export type TName = {
   firstName: string;
@@ -32,7 +34,7 @@ export type TMember = {
   id?: string;
   memberImg: string;
   name: TName;
-  user: Types.ObjectId;
+  user: Types.ObjectId | TUser;
   mob: string;
   mobAlt?: string;
   memberNID: string;

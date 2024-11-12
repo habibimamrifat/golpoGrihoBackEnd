@@ -8,8 +8,7 @@ import { UserModel } from './user.model';
 import mongoose from 'mongoose';
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
-  user.role = 'admin';
-  user.requestState = 'approved';
+
   const id = await idGearator(memberData.name.lastName);
   user.id = id;
 
