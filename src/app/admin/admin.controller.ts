@@ -14,6 +14,7 @@ const findAllMember = asyncCatch(async (req, res) => {
 
 
 });
+
 const findAllMemberRequests = asyncCatch(async (req, res) => {
   const result = await adminServeces.findAllMemberRequests();
   responseHandeler(res, {
@@ -25,6 +26,19 @@ const findAllMemberRequests = asyncCatch(async (req, res) => {
 
 
 });
+
+const findPrecedentAndVp = asyncCatch(async (req, res) => {
+  const result = await adminServeces.findPrecedentAndVp();
+  responseHandeler(res, {
+    status:200,
+    success:true,
+    message: 'all member request found',
+    data: result,
+  });
+
+
+});
+
 const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
   const{id,requestState}=req.body
   // console.log(req.body)
@@ -40,4 +54,45 @@ const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
 
 });
 
-export const adminConntroller = { findAllMember,findAllMemberRequests,acceptOrCacelmemberRequest };
+
+const makePrecidentOrVp = asyncCatch(async (req, res) => {
+  const{id,role}=req.body
+  // console.log(req.body)
+
+  const result = await adminServeces.makePrecidentOrVp(id,role);
+  responseHandeler(res, {
+    status:200,
+    success:true,
+    message: 'members role has ben updated',
+    data: result,
+  });
+
+
+});
+const removePresedentOrVpRole = asyncCatch(async (req, res) => {
+  const{VpOrPId}=req.params
+  console.log(VpOrPId)
+
+  const result = await adminServeces.removePresedentOrVpRole(VpOrPId);
+  responseHandeler(res, {
+    status:200,
+    success:true,
+    message: 'members role has ben updated',
+    data: result,
+  });
+});
+
+const deleteMember = asyncCatch(async (req, res) => {
+  const{memberId}=req.params
+  console.log(memberId)
+
+  const result = await adminServeces.deleteMember(memberId);
+  responseHandeler(res, {
+    status:200,
+    success:true,
+    message: 'members role has ben updated',
+    data: result,
+  });
+});
+
+export const adminConntroller = { findAllMember,findAllMemberRequests,acceptOrCacelmemberRequest, makePrecidentOrVp,findPrecedentAndVp,removePresedentOrVpRole,deleteMember};
