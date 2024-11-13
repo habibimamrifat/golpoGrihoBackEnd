@@ -30,6 +30,8 @@ export const InstallmenntZodListSchema = z.object({
   id: z.string(),
   totalDeposit: z.number().optional(),
   depositList: z.array(InstallmentZodSchema).default([]),
+  sDelited:z.boolean().default(false)
+  
 });
 
 export const MakeAInstallmentZodSchema = z.object({

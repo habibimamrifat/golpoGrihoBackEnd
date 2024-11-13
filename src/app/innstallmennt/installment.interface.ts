@@ -29,4 +29,5 @@ export type TInstallmentList = {
   id: string;
   totalDeposit: number;
   depositList: TInstallment[];
+  isDelited:boolean
 };

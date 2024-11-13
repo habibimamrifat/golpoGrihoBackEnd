@@ -95,6 +95,7 @@ const memberSchema = new Schema<TMember>({
     ref: 'Installment',
     required: true,
   },
+  isDelited:{type:Boolean, default:false}
 });
 
 

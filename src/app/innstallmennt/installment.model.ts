@@ -51,6 +51,7 @@ const InstallmentSchema = new Schema<TInstallment>({
     enum: ['waiting', 'declined', 'approved'],
     default: 'waiting',
   },
+  
   installmentDate: {
     type: Date,
     default: () => new Date(),
@@ -75,6 +76,7 @@ const InstallmentListSchema = new Schema<TInstallmentList>({
     default: [],
     required: true,
   },
+  isDelited:{type:Boolean,default:false},
 });
 
 InstallmentListSchema.pre('save', async function (next) {

@@ -42,4 +42,5 @@ export type TMember = {
   memberPermanentAddress: TAddress;
   memberPresentAddress: TAddress;
   installmentList: Types.ObjectId;
+  isDelited:boolean
 };

@@ -26,12 +26,14 @@ const findAllMemberRequests = asyncCatch(async (req, res) => {
 
 });
 const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
-  const {adminId}=req.params
-  const result = await adminServeces.acceptOrCacelmemberRequest();
+  const{id,requestState}=req.body
+  // console.log(req.body)
+
+  const result = await adminServeces.acceptOrCacelmemberRequest(id,requestState);
   responseHandeler(res, {
     status:200,
     success:true,
-    message: 'all member found',
+    message: 'members requestState has ben updated',
     data: result,
   });
 

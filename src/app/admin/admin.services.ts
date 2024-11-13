@@ -42,10 +42,18 @@ const findAllMemberRequests = async () => {
   return result;
 };
 
-const acceptOrCacelmemberRequest = async () => {
-  const result = await UserModel.findOneAndUpdate({  });
+const acceptOrCacelmemberRequest = async (id:string, requestState:string) => {
+  const result = await UserModel.findOneAndUpdate({id:id },{requestState:requestState},{new:true});
   return result;
 };
+const deleteMember = async (id:string, requestState:string) => {
+  const result = await UserModel.findOneAndUpdate({id:id },{isDelited:true},{new:true});
+  return result;
+};
+
+const makePrecidenntOrVp=async(id:string, role:string)=>{
+  
+}
 
 export const adminServeces = {
   findAllMember,

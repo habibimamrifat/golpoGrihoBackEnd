@@ -72,6 +72,7 @@ const createMemberZodSchema = z.object({
     membersNomini: nominiZodSchema,
     memberPermanentAddress: addressZodSchema,
     memberPresentAddress: addressZodSchema,
+    isDelited:z.boolean().default(false)
   }),
 });
 
