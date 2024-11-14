@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document, Types, model } from 'mongoose';
+import  { Schema, model } from 'mongoose';
 import {
   TInstallment,
   TInstallmentList,
   TMonth,
 } from './installment.interface';
-import { date } from 'zod';
+
 
 // Define the TMonth type as an enum for the schema
 const monthEnum: TMonth[] = [
