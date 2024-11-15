@@ -18,7 +18,7 @@ export type TInstallment = {
   year: string;
   month: TMonth;
   installmentAmount: number;
-  
+
   transactionImg?: string;
   acceptedBy?: string;
   status: 'waiting' | 'declined' | 'approved';
@@ -28,6 +28,6 @@ export type TInstallment = {
 export type TInstallmentList = {
   id: string;
   totalDeposit: number;
-  depositList: TInstallment[];
-  isDelited:boolean
+  installmentList: TInstallment[];
+  isDelited: boolean;
 };

@@ -4,11 +4,11 @@ import { InstallmentListtModel } from './installment.model';
 const dublicetDepositCheck = async (id: string, deposit: TInstallment) => {
   const dublicateFound = await InstallmentListtModel.aggregate([
     { $match: { id: id } },
-    { $unwind: '$depositList' },
+    { $unwind: '$installmentList' },
     {
       $match: {
-        'depositList.year': deposit.year,
-        'depositList.month': deposit.month,
+        'installmentList.year': deposit.year,
+        'installmentList.month': deposit.month,
       },
     },
   ]);

@@ -14,16 +14,14 @@ const makeAInstallment = async (depositData: any) => {
   if (!dublicateDepositCheck) {
     const result = await InstallmentListtModel.findOneAndUpdate(
       { id: id },
-      { $push: { depositList: deposit } },
+      { $push: { installmentList: deposit } },
       { new: true },
     );
-   if(result)
-   {
-    return result;
-   }
-   else{
-    throw new Error("Something Went Wrong")
-   }
+    if (result) {
+      return result;
+    } else {
+      throw new Error('Something Went Wrong');
+    }
   }
 };
 

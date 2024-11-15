@@ -12,9 +12,21 @@ const findSingleMember = asyncCatch(async (req, res) => {
     body: result,
   });
 });
+const updateAmemberData = asyncCatch(async (req, res) => {
+  const id = req.params.id;
+  const {updatedData} = req.body
+
+  const result = await memberServices.updateAmemberData(id,updatedData);
+  res.status(200).json({
+    success: true,
+    message: 'the member is created successfully',
+    body: result,
+  });
+});
 
 
 
 export const memberController = {
-  findSingleMember
+  findSingleMember,
+  updateAmemberData
 };

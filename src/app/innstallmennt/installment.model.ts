@@ -1,10 +1,9 @@
-import  { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import {
   TInstallment,
   TInstallmentList,
   TMonth,
 } from './installment.interface';
-
 
 // Define the TMonth type as an enum for the schema
 const monthEnum: TMonth[] = [
@@ -36,22 +35,22 @@ const InstallmentSchema = new Schema<TInstallment>({
   installmentAmount: {
     type: Number,
     required: true,
-    min:1000
+    min: 1000,
   },
-  transactionImg:{
-    type:String,
-    required:false
+  transactionImg: {
+    type: String,
+    required: false,
   },
-  acceptedBy:{
-    type:String,
-    required:false
+  acceptedBy: {
+    type: String,
+    required: false,
   },
   status: {
     type: String,
     enum: ['waiting', 'declined', 'approved'],
     default: 'waiting',
   },
-  
+
   installmentDate: {
     type: Date,
     default: () => new Date(),
@@ -71,12 +70,12 @@ const InstallmentListSchema = new Schema<TInstallmentList>({
     default: 0,
   },
 
-  depositList: {
+  installmentList: {
     type: [InstallmentSchema],
     default: [],
     required: true,
   },
-  isDelited:{type:Boolean,default:false},
+  isDelited: { type: Boolean, default: false },
 });
 
 InstallmentListSchema.pre('save', async function (next) {

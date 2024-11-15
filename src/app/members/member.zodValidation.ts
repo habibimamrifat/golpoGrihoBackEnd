@@ -72,9 +72,38 @@ const createMemberZodSchema = z.object({
     membersNomini: nominiZodSchema,
     memberPermanentAddress: addressZodSchema,
     memberPresentAddress: addressZodSchema,
-    isDelited:z.boolean().default(false)
+    isDelited: z.boolean().default(false),
+  }),
+});
+
+const memmberDataUpdateZodSchema = z.object({
+  updatedData: z.object({
+    memberImg: z.string().optional(),
+    name: nameZodSchema.optional(),
+    mob: z
+      .string()
+      .regex(/^\d+$/, 'Mobile number should contain only digits')
+      .min(11, 'Mobile number cannot be less than 11 digits')
+      .max(11, 'Mobile number cannot exceed 11 digits').optional(),
+    mobAlt: z
+      .string()
+      .regex(/^\d+$/, 'Alternate mobile number should contain only digits')
+      .min(11, 'Alternate mobile number cannot be less than 11 digits')
+      .max(11, 'Alternate mobile number cannot exceed 11 digits')
+      .optional(), // Optional as per TMember type
+    memberNID: z
+      .string()
+      .regex(/^\d+$/, 'NID should contain only digits')
+      .min(1, 'NID is required').optional(),
+
+    membersNomini: nominiZodSchema.optional(),
+    memberPermanentAddress: addressZodSchema.optional(),
+    memberPresentAddress: addressZodSchema.optional(),
   }),
 });
 
 // Export for validation usage
-export const memberValidations = { createMemberZodSchema };
+export const memberValidations = {
+  createMemberZodSchema,
+  memmberDataUpdateZodSchema,
+};

@@ -18,14 +18,14 @@ const approveOrDeclineAnInstallment = asyncCatch(async(req,res)=>{
     const {VpOrPId}= req.params
     const {id, installmentStatus}= req.body
     const result =await vpOrPServices.approveOrDeclineAnInstallment(VpOrPId,id,installmentStatus)
-    // responseHandeler(res,
-    //    {
-    //        status:200,
-    //        success:true,
-    //        message:"all waitiing InstallmentFound",
-    //        data:result
-    //    }
-    // )
+    responseHandeler(res,
+       {
+           status:200,
+           success:true,
+           message:"all waitiing InstallmentFound",
+           data:result
+       }
+    )
    })
 
 export const vpOrPController = {

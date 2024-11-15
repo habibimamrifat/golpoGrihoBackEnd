@@ -29,7 +29,7 @@ const InstallmentZodSchema = z.object({
 export const InstallmenntZodListSchema = z.object({
   id: z.string(),
   totalDeposit: z.number().optional(),
-  depositList: z.array(InstallmentZodSchema).default([]),
+  installmentList: z.array(InstallmentZodSchema).default([]),
   sDelited:z.boolean().default(false)
   
 });

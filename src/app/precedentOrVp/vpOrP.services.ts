@@ -3,10 +3,17 @@ import { InstallmentListtModel } from '../innstallmennt/installment.model';
 
 const findAllWaitingInstallment = async () => {
   const result = await InstallmentListtModel.aggregate([
-    { $unwind: '$depositList' },
-    { $match: { 'depositList.status': 'waiting' } },
-  ]).project({ id: 1, depositList: 1 });
-  //   console.log('waiting', allWautingInstallment);
+    { $unwind: '$installmentList' },
+    { $match: { 'installmentList.status': 'waiting' } },
+    {
+      $lookup: {
+        from: 'members',
+        localField: 'id', 
+        foreignField: 'id', 
+        as: 'memberDetails'
+      },
+    },
+  ]).project({ id: 1, installmentList: 1,"memberDetails.name":1 });
   return result;
 };
 
@@ -15,18 +22,36 @@ const approveOrDeclineAnInstallment = async (
   id: string,
   installmentStatus: { status: string; _id: string },
 ) => {
- const calclulateTotalInstallment = async (id:string)=>{
-    const updateTotalInstallment = await InstallmentListtModel.aggregate([{$match:{id:id}},{$unwind:'$depositList'}])
-    return updateTotalInstallment
- }
-  const update = await InstallmentListtModel.aggregate([
-    { $match: { id: id } },
-    { $unwind: '$depositList' },
-    {$match:{"depositList._id":new mongoose.Types.ObjectId(installmentStatus._id)}},
-    {$set:{"depositList.status":installmentStatus.status}}
-  ]);
-   const result = await calclulateTotalInstallment(id)
-  console.log(result)
+  const updateStatus = await InstallmentListtModel.updateOne(
+    {
+      id: id,
+      'installmentList._id': new mongoose.Types.ObjectId(installmentStatus._id),
+    },
+    { $set: { 'installmentList.$.status': installmentStatus.status } },
+  );
+
+  const calculateTotalInstallment = async (id: string) => {
+    const totalInstallment = await InstallmentListtModel.aggregate([
+      { $match: { id: id } },
+      { $unwind: '$installmentList' },
+      { $match: { 'installmentList.status': 'approved' } },
+      {
+        $group: {
+          _id: null,
+          totalDeposit: { $sum: '$installmentList.installmentAmount' },
+        },
+      },
+    ]);
+
+    return totalInstallment.length > 0 ? totalInstallment[0].totalDeposit : 0;
+  };
+
+  const totalDeposit = await calculateTotalInstallment(id);
+
+  await InstallmentListtModel.updateOne(
+    { id: id },
+    { $set: { totalDeposit: totalDeposit } },
+  );
 };
 
 export const vpOrPServices = {

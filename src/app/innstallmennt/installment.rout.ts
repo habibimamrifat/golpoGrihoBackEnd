@@ -7,11 +7,11 @@ import {
 } from './installment.validation';
 
 const installmenttRout = express.Router();
-installmenttRout.post(
-  '/createInstallmentList',
-  validator(InstallmenntZodListSchema),
-  InstallmentController.createIstallmenntList,
-);
+// installmenttRout.post(
+//   '/createInstallmentList',
+//   validator(InstallmenntZodListSchema),
+//   InstallmentController.createIstallmenntList,
+// );
 
 
 installmenttRout.post(
