@@ -1,15 +1,15 @@
 import asyncCatch from '../../utility/asynncCatch';
 import { InstallmentServices } from './installment.services';
 
-const createIstallmenntList = asyncCatch(async (req, res) => {
-  const depositData = req.body;
-  const result = await InstallmentServices.createInstallmentList(depositData);
-  res.status(200).json({
-    success: true,
-    message: 'deposit List created successfully',
-    body: result,
-  });
-});
+// const createIstallmenntList = asyncCatch(async (req, res) => {
+//   const depositData = req.body;
+//   const result = await InstallmentServices.createInstallmentList(depositData);
+//   res.status(200).json({
+//     success: true,
+//     message: 'deposit List created successfully',
+//     body: result,
+//   });
+// });
 
 const makeAInstallment = asyncCatch(async (req, res) => {
   const depositData = req.body;
@@ -41,6 +41,7 @@ const findInstallmentOfSingleMember = asyncCatch(async (req, res) => {
   });
 });
 
+// createIstallmenntList,
 export const InstallmentController = {
-  createIstallmenntList,makeAInstallment,findInstallmentOfSingleMember,findInstallmentOfAllMembers
+  makeAInstallment,findInstallmentOfSingleMember,findInstallmentOfAllMembers
 };

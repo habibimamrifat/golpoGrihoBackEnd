@@ -9,6 +9,11 @@ const MakePrecidentOrVp = z.object({
     role: z.enum(["precident","vicePrecident"]),
 });
 
+const updateShareCount=z.object({
+    memberId:z.string(),
+    numberOfShares:z.number()
+})
+
 export const adminInputValidator = {
-    AcceptRequestValidator,MakePrecidentOrVp
+    AcceptRequestValidator,MakePrecidentOrVp,updateShareCount
 }

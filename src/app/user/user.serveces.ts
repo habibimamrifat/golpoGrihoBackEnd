@@ -6,11 +6,16 @@ import idGearator from './idGenarator.utill';
 import { TUser } from './user.interface';
 import { UserModel } from './user.model';
 import mongoose from 'mongoose';
+import { BannerServeces } from '../banner/banner.servicces';
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
-
   const id = await idGearator(memberData.name.lastName);
   user.id = id;
+
+  const isFirstUser = await UserModel.find();
+  if (isFirstUser.length === 0) {
+    (user.role = 'admin'), (user.requestState = 'approved');
+  }
 
   // Start a session
   const session = await mongoose.startSession();
@@ -31,6 +36,10 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
     await memberInstance.save({ session });
 
     await session.commitTransaction();
+
+    // for banner update
+    await BannerServeces.updateBannerTotalMember();
+
     return memberInstance;
   } catch (err: any) {
     // Abort transaction on error
@@ -49,8 +58,24 @@ const logInUser = async (email: string, password: string) => {
     const matched = await bcrypt.compare(password, user.password);
     if (matched) {
       if (user.requestState === 'approved') {
-        const result = await memberModel.findOne({ id: user.id });
-        return result;
+        const approveLogIn = await UserModel.findOneAndUpdate(
+          { id: user.id, isDelited: false },
+          {
+            isLoggedIn: true,
+          },
+          { new: true },
+        );
+        if (approveLogIn) {
+          const result = await memberModel
+            .findOne({ id: user.id })
+            .populate('user')
+            .populate('installmentList');
+          return result;
+        } else {
+          throw new Error(
+            'something Went wronng or your accounnt has been deleted',
+          );
+        }
       } else {
         throw new Error(
           `your request to join GOLPO GRIHO is ${user.requestState}`,
@@ -64,7 +89,19 @@ const logInUser = async (email: string, password: string) => {
   }
 };
 
+const logOutUser = async (_id: string) => {
+  const result = await UserModel.findOneAndUpdate(
+    { _id: new mongoose.Types.ObjectId(_id) },
+    {
+      isLoggedIn: false,
+    },
+    { new: true },
+  );
+  return result;
+};
+
 export const UserServices = {
   createAMemberInDb,
   logInUser,
+  logOutUser,
 };

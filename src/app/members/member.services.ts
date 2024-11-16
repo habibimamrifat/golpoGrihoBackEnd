@@ -59,14 +59,14 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
       modifiedUpdatedData,
     );
   }
-  const result = await memberModel.findByIdAndUpdate(
-    { id: id },
-    { modifiedUpdatedData },
-    {
-      new: true,
-    },
-  );
-  return result
+  // const result = await memberModel.findByIdAndUpdate(
+  //   { id: id },
+  //   { modifiedUpdatedData },
+  //   {
+  //     new: true,
+  //   },
+  // );
+  // return result
 };
 
 export const memberServices = {

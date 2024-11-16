@@ -35,6 +35,10 @@ const userSchema = new Schema<TUser>(
       enum: ['approved', 'waiting', 'canceled'],
       default: 'waiting',
     },
+    isLoggedIn:{
+      type:Boolean,
+      default:false
+    },
     isDelited: {
       type: Boolean,
       default: false,

@@ -15,8 +15,12 @@ adminRouts.patch("/acceptMemberRequest/:adminId",validator(adminInputValidator.A
 
 adminRouts.patch("/makePrecidentOrVp/:adminId",validator(adminInputValidator.MakePrecidentOrVp) ,adminValidator ,adminConntroller.makePrecidentOrVp)
 
+adminRouts.patch("/updateAccuiredNumberOfShareOfAMember/:adminId",validator(adminInputValidator.updateShareCount) ,adminValidator ,adminConntroller.updateAccuiredNumberOfShareOfAMember)
+
 
 adminRouts.patch("/removePresedentOrVpRole/:adminId/:VpOrPId",adminValidator ,adminConntroller.removePresedentOrVpRole)
+
+adminRouts.patch("/updateValueOfEachShare/:adminId/:valueOfEachShare",adminValidator ,adminConntroller.updateValueOfEachShare)
 
 adminRouts.delete("/deleteMember/:adminId/:memberId",adminValidator ,adminConntroller.deleteMember)
 

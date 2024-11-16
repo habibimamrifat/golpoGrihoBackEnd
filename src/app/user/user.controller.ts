@@ -28,12 +28,25 @@ const logInUser = asyncCatch(
     const result = await UserServices.logInUser(email, password);
     res.status(200).json({
       success: true,
-      message: 'the member is found',
+      message: 'log in successfull',
+      body: result,
+    });
+  },
+);
+
+const logOutUser = asyncCatch(
+  async (req, res, next) => {
+    const { user_id} = req.params;
+
+    const result = await UserServices.logOutUser(user_id);
+    res.status(200).json({
+      success: true,
+      message: 'log out successfull',
       body: result,
     });
   },
 );
 
 export const UserController = {
-  createMember,logInUser
+  createMember,logInUser,logOutUser
 };

@@ -14,6 +14,7 @@ const installmenttRout = express.Router();
 // );
 
 
+
 installmenttRout.post(
   '/makeAInstallment',
   validator(MakeAInstallmentZodSchema),

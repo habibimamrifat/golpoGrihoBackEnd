@@ -2,10 +2,10 @@ import { TInstallment } from './installment.interface';
 import { InstallmentListtModel } from './installment.model';
 import dublicetDepositCheck from './dublicetInstallment.utill';
 
-const createInstallmentList = async (depositData: TInstallment) => {
-  const result = await InstallmentListtModel.create(depositData);
-  return result;
-};
+// const createInstallmentList = async (depositData: TInstallment) => {
+//   const result = await InstallmentListtModel.create(depositData);
+//   return result;
+// };
 
 const makeAInstallment = async (depositData: any) => {
   const { id, deposit } = depositData;
@@ -35,8 +35,9 @@ const findInstallmentOfSingleMember = async (id: string) => {
   return result;
 };
 
+// createInstallmentList,
 export const InstallmentServices = {
-  createInstallmentList,
+  
   makeAInstallment,
   findInstallmentOfSingleMember,
   findInstallmentOfAllMembers,

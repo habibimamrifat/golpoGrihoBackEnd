@@ -41,6 +41,8 @@ export type TMember = {
   membersNomini: TNomini;
   memberPermanentAddress: TAddress;
   memberPresentAddress: TAddress;
+  acccuiredNumberOfShare?:number;
+  eachShareValue?:number;
   installmentList: Types.ObjectId;
   isDelited:boolean
 };

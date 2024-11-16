@@ -76,10 +76,41 @@ const createMemberZodSchema = z.object({
   }),
 });
 
+//.......................update schema starts here ...............
+
+const updateNameZodSchema = nameZodSchema.partial();
+const updateAddressZodSchema = addressZodSchema.partial()
+
+const updateNominiZodSchema = z.object({
+  name: updateNameZodSchema,
+  nominiImg: z.string(),
+  email: z.string().email('Invalid email format'),
+  nominiPresentAddress: updateAddressZodSchema,
+  nominiPermanentAddress: updateAddressZodSchema,
+  nominyImg: z.string().min(1, 'Nominee image is required'),
+  mob: z
+    .string()
+    .regex(/^\d+$/, 'Mobile number should contain only digits')
+    .min(11, 'Mobile number cannot be less than 11 digits')
+    .max(11, 'Mobile number cannot exceed 11 digits'),
+  mobAlt: z
+    .string()
+    .regex(/^\d+$/, 'Alternate mobile number should contain only digits')
+    .min(11, 'Alternate mobile number cannot be less than 11 digits')
+    .max(11, 'Alternate mobile number cannot exceed 11 digits')
+    .optional(), // Optional as per TNomini type
+  nominiNID: z
+    .string()
+    .regex(/^\d+$/, 'NID should contain only digits')
+    .min(1, 'NID is required'),
+});
+
+const percialUpdateNominiZodSchema = updateNominiZodSchema.partial()
+
 const memmberDataUpdateZodSchema = z.object({
   updatedData: z.object({
     memberImg: z.string().optional(),
-    name: nameZodSchema.optional(),
+    name: updateNameZodSchema.optional(),
     mob: z
       .string()
       .regex(/^\d+$/, 'Mobile number should contain only digits')
@@ -96,9 +127,9 @@ const memmberDataUpdateZodSchema = z.object({
       .regex(/^\d+$/, 'NID should contain only digits')
       .min(1, 'NID is required').optional(),
 
-    membersNomini: nominiZodSchema.optional(),
-    memberPermanentAddress: addressZodSchema.optional(),
-    memberPresentAddress: addressZodSchema.optional(),
+    membersNomini: percialUpdateNominiZodSchema.optional(),
+    memberPermanentAddress: updateAddressZodSchema.optional(),
+    memberPresentAddress: updateAddressZodSchema.optional(),
   }),
 });
 

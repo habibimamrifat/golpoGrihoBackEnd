@@ -22,7 +22,7 @@ const approveOrDeclineAnInstallment = asyncCatch(async(req,res)=>{
        {
            status:200,
            success:true,
-           message:"all waitiing InstallmentFound",
+           message:"installment accepted",
            data:result
        }
     )

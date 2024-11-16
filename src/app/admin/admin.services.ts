@@ -5,6 +5,7 @@ import { UserModel } from '../user/user.model';
 import { adminUtill } from './admin.utill';
 import mongoose from 'mongoose';
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
+import { BannerServeces } from '../banner/banner.servicces';
 
 const findAllMember = async () => {
   const allMambers = await memberModel
@@ -72,6 +73,7 @@ const acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
     { requestState: requestState },
     { new: true },
   );
+  await BannerServeces.updateBannerTotalMember()
   return result;
 };
 
@@ -91,6 +93,18 @@ const makePrecidentOrVp = async (id: string, role: string) => {
   }
 };
 
+
+const updateAccuiredNumberOfShareOfAMember = async (id: string, numberOfShares: string) => {
+  
+    const result = await memberModel.findOneAndUpdate(
+      { id: id },
+      {  acccuiredNumberOfShare:numberOfShares },
+      { new: true },
+    );
+    return result;
+ 
+};
+
 const removePresedentOrVpRole = async (id: string) => {
   const result = await UserModel.findOneAndUpdate(
     { id: id },
@@ -98,6 +112,11 @@ const removePresedentOrVpRole = async (id: string) => {
     { new: true },
   );
   return result;
+};
+
+const updateValueOfEachShare = async (valueOfEachShare: string) => {
+  const result = await memberModel.findOneAndUpdate({},{eachShareValue:valueOfEachShare},{new:true})
+  return result
 };
 
 const deleteMember = async (id: string) => {
@@ -119,8 +138,11 @@ const deleteMember = async (id: string) => {
       { isDelited: true },
       { new: true, session },
     );
-
     await session.commitTransaction();
+
+    await BannerServeces.updateBannerTotalMember()
+
+
     return { message: "Member and related data successfully marked as deleted", success: true };
   } catch (err) {
     console.log(err);
@@ -138,4 +160,6 @@ export const adminServeces = {
   findPrecedentAndVp,
   removePresedentOrVpRole,
   deleteMember,
+  updateAccuiredNumberOfShareOfAMember,
+  updateValueOfEachShare
 };

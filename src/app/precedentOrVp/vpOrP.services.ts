@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
+import { BannerServeces } from '../banner/banner.servicces';
 
 const findAllWaitingInstallment = async () => {
   const result = await InstallmentListtModel.aggregate([
@@ -8,12 +9,12 @@ const findAllWaitingInstallment = async () => {
     {
       $lookup: {
         from: 'members',
-        localField: 'id', 
-        foreignField: 'id', 
-        as: 'memberDetails'
+        localField: 'id',
+        foreignField: 'id',
+        as: 'memberDetails',
       },
     },
-  ]).project({ id: 1, installmentList: 1,"memberDetails.name":1 });
+  ]).project({ id: 1, installmentList: 1, 'memberDetails.name': 1 });
   return result;
 };
 
@@ -27,7 +28,12 @@ const approveOrDeclineAnInstallment = async (
       id: id,
       'installmentList._id': new mongoose.Types.ObjectId(installmentStatus._id),
     },
-    { $set: { 'installmentList.$.status': installmentStatus.status } },
+    {
+      $set: {
+        'installmentList.$.status': installmentStatus.status,
+        acceptedBy: VpOrPId,
+      },
+    },
   );
 
   const calculateTotalInstallment = async (id: string) => {
@@ -52,6 +58,8 @@ const approveOrDeclineAnInstallment = async (
     { id: id },
     { $set: { totalDeposit: totalDeposit } },
   );
+  
+  await BannerServeces.updateBannerTotalDepositAmount();
 };
 
 export const vpOrPServices = {
