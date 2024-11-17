@@ -18,7 +18,7 @@ const findAllMemberRequests = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'all member request found',
+    message: 'all requesting members found',
     data: result,
   });
 });
@@ -28,7 +28,7 @@ const findPrecedentAndVp = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'all member request found',
+    message: 'both Precident and Viceprecident found',
     data: result,
   });
 });
@@ -44,7 +44,7 @@ const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members requestState has ben updated',
+    message: `members requestState has ben ${requestState}`,
     data: result,
   });
 });
@@ -57,10 +57,11 @@ const makePrecidentOrVp = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members role has ben updated',
+    message: `members role has ben updated to ${role}`,
     data: result,
   });
 });
+
 const updateAccuiredNumberOfShareOfAMember = asyncCatch(async (req, res) => {
   const { memberId, numberOfShares } = req.body;
   // console.log(req.body)
@@ -72,7 +73,7 @@ const updateAccuiredNumberOfShareOfAMember = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members role has ben updated',
+    message: `member has accured ${numberOfShares} shares`,
     data: result,
   });
 });
@@ -85,7 +86,7 @@ const removePresedentOrVpRole = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members role has ben updated',
+    message: 'members role as precident or viceprecidennnnt has ben removed',
     data: result,
   });
 });
@@ -98,7 +99,7 @@ const updateValueOfEachShare = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'value Of Each Share has ben updated',
+    message: `value Of Each Share has ben updated to ${valueOfEachShare}`,
     data: result,
   });
 });
@@ -111,7 +112,7 @@ const deleteMember = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members role has ben updated',
+    message: 'members role has ben deleted',
     data: result,
   });
 });

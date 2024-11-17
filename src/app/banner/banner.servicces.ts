@@ -2,21 +2,7 @@ import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { UserModel } from '../user/user.model';
 import { BannerMOdel } from './banner.model';
 
-const createBanner = async () => {
-  try {
-    const findBanner = await BannerMOdel.find();
-    if (findBanner.length === 0) {
-      return await BannerMOdel.create({
-        totalDepositedAmmount: 0,
-        totalMember: 0,
-      });
-    }
-    return findBanner[0];
-  } catch (err) {
-    console.error('Something went wrong during creating banner:', err);
-    throw err;
-  }
-};
+
 
 const updateBannerTotalMember = async () => {
   try {
@@ -56,8 +42,43 @@ const updateBannerTotalDepositAmount = async () => {
   }
 };
 
+//always  keep it in the end
+const createBanner = async () => {
+  try {
+    const findBanner = await BannerMOdel.find();
+    
+    if (findBanner.length === 0) {
+      return Promise.all([
+        BannerMOdel.create({
+          totalDepositedAmmount: 0,
+          totalMember: 0,
+          currentTotalBalance: 0,
+        }),
+        updateBannerTotalMember(),
+        updateBannerTotalDepositAmount(),
+      ]);
+    }
+    
+    return Promise.all([
+      updateBannerTotalMember(),
+      updateBannerTotalDepositAmount(),
+    ]);
+  } catch (err) {
+    console.error('Something went wrong during creating banner:', err);
+    throw err;
+  }
+};
+
+
+const getBanner = async()=>
+{
+  const result = await BannerMOdel.find()
+  return result
+}
+
 export const BannerServeces = {
   createBanner,
   updateBannerTotalMember,
-  updateBannerTotalDepositAmount
+  updateBannerTotalDepositAmount,
+  getBanner
 };
