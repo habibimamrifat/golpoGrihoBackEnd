@@ -89,8 +89,7 @@ const memberSchema = new Schema<TMember>({
   membersNomini: { type: nominiSchema, required: true },
   memberPermanentAddress: { type: addressSchema, required: true },
   memberPresentAddress: { type: addressSchema, required: true },
-  acccuiredNumberOfShare:{type:Number,default:1,required:false},
-  eachShareValue:{type:Number,default:1000,required:false},
+  acccuiredShareDetail:{type:Schema.Types.ObjectId,unique:true,ref:"ShareDetail",required:true},
   installmentList: {
     type: Schema.Types.ObjectId,
     unique: true,

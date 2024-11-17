@@ -6,6 +6,7 @@ import { adminUtill } from './admin.utill';
 import mongoose from 'mongoose';
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { BannerServeces } from '../banner/banner.servicces';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 
 const findAllMember = async () => {
   const allMambers = await memberModel
@@ -96,9 +97,9 @@ const makePrecidentOrVp = async (id: string, role: string) => {
 
 const updateAccuiredNumberOfShareOfAMember = async (id: string, numberOfShares: string) => {
   
-    const result = await memberModel.findOneAndUpdate(
+    const result = await ShareDetailModel.findOneAndUpdate(
       { id: id },
-      {  acccuiredNumberOfShare:numberOfShares },
+      {  numberOfShare:numberOfShares },
       { new: true },
     );
     return result;
@@ -115,7 +116,7 @@ const removePresedentOrVpRole = async (id: string) => {
 };
 
 const updateValueOfEachShare = async (valueOfEachShare: string) => {
-  const result = await memberModel.findOneAndUpdate({},{eachShareValue:valueOfEachShare},{new:true})
+  const result = await ShareDetailModel.updateMany({},{valueOfEachShare:valueOfEachShare},{new:true})
   return result
 };
 

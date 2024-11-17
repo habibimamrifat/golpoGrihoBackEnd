@@ -7,6 +7,7 @@ import { TUser } from './user.interface';
 import { UserModel } from './user.model';
 import mongoose from 'mongoose';
 import { BannerServeces } from '../banner/banner.servicces';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   const id = await idGearator(memberData.name.lastName);
@@ -28,8 +29,12 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
     const installmentInstance = new InstallmentListtModel({ id: id });
     await installmentInstance.save({ session });
 
+    const ShareDetailInstace = new ShareDetailModel({id:id})
+    ShareDetailInstace.save({session})
+
     memberData.id = id;
     memberData.user = userInstance._id;
+    memberData.acccuiredShareDetail=ShareDetailInstace._id;
     memberData.installmentList = installmentInstance._id;
 
     const memberInstance = new memberModel(memberData);

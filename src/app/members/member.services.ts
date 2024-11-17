@@ -4,9 +4,11 @@ import memberModel from './member.model';
 const findSingleMember = async (id: string) => {
   const result = await memberModel
     .findOne({ id: id })
-    .populate('installmentList');
+    .populate('installmentList')
+    .populate("acccuiredShareDetail");
   return result;
 };
+
 const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
   const {
     name,
@@ -59,14 +61,14 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
       modifiedUpdatedData,
     );
   }
-  // const result = await memberModel.findByIdAndUpdate(
-  //   { id: id },
-  //   { modifiedUpdatedData },
-  //   {
-  //     new: true,
-  //   },
-  // );
-  // return result
+  const result = await memberModel.findByIdAndUpdate(
+    { id: id },
+    { modifiedUpdatedData },
+    {
+      new: true,
+    },
+  );
+  return result
 };
 
 export const memberServices = {

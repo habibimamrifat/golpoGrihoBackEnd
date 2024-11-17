@@ -1,6 +1,6 @@
+import { installmetUtill } from './dublicetInstallment.utill';
 import { TInstallment } from './installment.interface';
 import { InstallmentListtModel } from './installment.model';
-import dublicetDepositCheck from './dublicetInstallment.utill';
 
 // const createInstallmentList = async (depositData: TInstallment) => {
 //   const result = await InstallmentListtModel.create(depositData);
@@ -10,17 +10,20 @@ import dublicetDepositCheck from './dublicetInstallment.utill';
 const makeAInstallment = async (depositData: any) => {
   const { id, deposit } = depositData;
 
-  const dublicateDepositCheck = await dublicetDepositCheck(id, deposit);
-  if (!dublicateDepositCheck) {
-    const result = await InstallmentListtModel.findOneAndUpdate(
-      { id: id },
-      { $push: { installmentList: deposit } },
-      { new: true },
-    );
-    if (result) {
-      return result;
-    } else {
-      throw new Error('Something Went Wrong');
+  const satisfyLimit =await installmetUtill.installmentLOwerLimitCheck(deposit.installmentAmount);
+  if (satisfyLimit) {
+    const dublicateDepositCheck = await installmetUtill.dublicetDepositCheck(id,deposit);
+    if (!dublicateDepositCheck) {
+      const result = await InstallmentListtModel.findOneAndUpdate(
+        { id: id },
+        { $push: { installmentList: deposit } },
+        { new: true },
+      );
+      if (result) {
+        return result;
+      } else {
+        throw new Error('Something Went Wrong');
+      }
     }
   }
 };
@@ -37,7 +40,6 @@ const findInstallmentOfSingleMember = async (id: string) => {
 
 // createInstallmentList,
 export const InstallmentServices = {
-  
   makeAInstallment,
   findInstallmentOfSingleMember,
   findInstallmentOfAllMembers,

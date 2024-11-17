@@ -1,3 +1,4 @@
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { TInstallment } from './installment.interface';
 import { InstallmentListtModel } from './installment.model';
 
@@ -18,4 +19,28 @@ const dublicetDepositCheck = async (id: string, deposit: TInstallment) => {
     return undefined;
   }
 };
-export default dublicetDepositCheck;
+
+const installmentLOwerLimitCheck = async (incommingAmmount: number) => {
+
+  console.log("from check",incommingAmmount)
+
+  const installmentLowerLimit = await ShareDetailModel.findOne();
+  if (installmentLowerLimit) {
+    if (installmentLowerLimit.valueOfEachShare > incommingAmmount) {
+      throw Error('Installment lowerLimit is not satisfied');
+    } 
+    else {
+      const isRound = (incommingAmmount % installmentLowerLimit.valueOfEachShare) === 0 ? true :false
+      if(isRound)
+      {
+        return true
+      }
+      else{
+        throw Error('the istallment ammount can not be devided in round number off month. please check your input or cotact admin');
+      }
+    }
+  }
+};
+
+
+export const installmetUtill = { dublicetDepositCheck,installmentLOwerLimitCheck };
