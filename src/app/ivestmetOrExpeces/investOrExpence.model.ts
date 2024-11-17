@@ -25,10 +25,12 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
     required: true,
   },
   ammountSpent: { type: Number, required: true },
-  ammoutGenareted:{type:Number, required:false},
+  profitGenareted:{type:Number, required:false ,default:0},
+  madeLoss:{type:Number, required:false ,default:0},
   expenceImg: { type: String, required: false },
   investmentCycle: {
     type: [InvestmentCycleSchema],
+    default:[]
   },
 });
 

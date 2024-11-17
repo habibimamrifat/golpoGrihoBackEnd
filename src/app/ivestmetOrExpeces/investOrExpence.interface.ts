@@ -9,7 +9,8 @@ export type TIvestOrExpennces = {
   motiveName: string;
   ExpencesType: 'investment' | 'expence';
   ammountSpent: number;
-  ammoutGenareted?:number;
+  profitGenareted?:number;
+  madeLoss?:number;
   expenceImg?: string;
   investmentCycle?: TIvestmentCycleIput[];
 };

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // Zod Schema for Investment Cycle
-const InvestmentCycleZodValSchema = z.object({
+const InvestmentCycleIputZodValSchema = z.object({
   cyclename: z.string().min(1, 'Cycle name is required'),
   cycleType: z.enum(['reinvest', 'profit', 'loss']),
   ammount: z.number().positive('Amount must be a positive number'),
@@ -13,12 +13,18 @@ const InvestOrExpensesZodValSchema = z.object({
   motiveName: z.string().min(1, 'Motive name is required'),
   ExpencesType: z.enum(['investment', 'expence']),
   ammountSpent: z.number().positive('Amount spent must be a positive number'),
-  ammoutGenareted: z
+  profitGenareted: z
     .number()
     .nonnegative('Amount generated cannot be negative')
+    .default(0)
+    .optional(),
+    madeLoss: z
+    .number()
+    .nonnegative('Amount generated cannot be negative')
+    .default(0)
     .optional(),
   expenceImg: z.string().optional(),
-  investmentCycle: z.array(InvestmentCycleZodValSchema).optional(),
+  investmentCycle: z.array(InvestmentCycleIputZodValSchema).optional(),
 });
 
-export { InvestmentCycleZodValSchema, InvestOrExpensesZodValSchema };
+export { InvestmentCycleIputZodValSchema, InvestOrExpensesZodValSchema };
