@@ -42,8 +42,7 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
 
     await session.commitTransaction();
 
-    // for banner update
-    await BannerServeces.updateBannerTotalMember();
+   
 
     return memberInstance;
   } catch (err: any) {

@@ -1,39 +1,66 @@
+import mongoose from 'mongoose';
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { UserModel } from '../user/user.model';
 import { BannerMOdel } from './banner.model';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 
-
-
-const updateBannerTotalMember = async () => {
+const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
   try {
-    const totalmember = await UserModel.find({
+    // Define the query
+    const query = {
       requestState: 'approved',
       isDelited: false,
-    });
-    const updateBannerTotalMember = await BannerMOdel.findOneAndUpdate(
+    };
+
+    // Execute the query with or without the session
+    const totalMembers = session
+      ? await UserModel.find(query).session(session)
+      : await UserModel.find(query);
+
+    // Execute the update with or without the session
+    const updateOptions = session ? { session, new: true } : { new: true };
+    const updatedBanner = await BannerMOdel.findOneAndUpdate(
       {},
-      { totalMember: totalmember.length },
-      { new: true },
+      { totalMember: totalMembers.length },
+      updateOptions,
     );
+
+    return updatedBanner;
   } catch (err) {
-    console.log('something went wront in updateBannerTotalMember ');
+    console.error('Something went wrong in updateBannerTotalMember:', err);
+    throw err;
   }
 };
 
-const updateBannerTotalDepositAmount = async () => {
+const updateBannerTotalDepositAmount = async (
+  session?: mongoose.ClientSession,
+) => {
   try {
-    const totalAmount = await InstallmentListtModel.aggregate([
+    const aggregationPipeline = [
       {
         $group: {
           _id: null,
           totalDeposit: { $sum: '$totalDeposit' },
         },
       },
-    ]);
+    ];
+
+    // Execute the aggregation with or without session
+    const totalAmount = session
+      ? await InstallmentListtModel.aggregate(aggregationPipeline).session(
+          session,
+        )
+      : await InstallmentListtModel.aggregate(aggregationPipeline);
 
     const total = totalAmount.length > 0 ? totalAmount[0].totalDeposit : 0;
 
-    const updateTotalDepositedAmmount = await BannerMOdel.findOneAndUpdate({},{totalDepositedAmmount:total})
+    // Execute the update with or without session
+    const updateOptions = session ? { session } : {};
+    const updateTotalDepositedAmmount = await BannerMOdel.findOneAndUpdate(
+      {},
+      { totalDepositedAmmount: total },
+      updateOptions,
+    );
 
     return total;
   } catch (err) {
@@ -42,26 +69,53 @@ const updateBannerTotalDepositAmount = async () => {
   }
 };
 
+const updateTotalumberOfShare = async (session?: mongoose.ClientSession) => {
+  const query = {
+    $group: {
+      _id: null,
+      totalNumberOfShares: { $sum: '$numberOfShareWonedPersonally' },
+    },
+  };
+
+  try {
+    const totalNumberOfShare = session
+      ? await ShareDetailModel.aggregate([query]).session(session)
+      : await ShareDetailModel.aggregate([query]);
+
+    const updateOptions = session ? { new: true, session } : { new: true };
+
+    const updateBannerQuery = await BannerMOdel.updateOne(
+      {},
+      { totalNumberOfShare: totalNumberOfShare[0]?.totalNumberOfShares || 0 },
+      updateOptions,
+    );
+    return updateBannerQuery;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 //always  keep it in the end
 const createBanner = async () => {
   try {
     const findBanner = await BannerMOdel.find();
-    
+
     if (findBanner.length === 0) {
       return Promise.all([
         BannerMOdel.create({
           totalDepositedAmmount: 0,
           totalMember: 0,
-          currentTotalBalance: 0,
         }),
         updateBannerTotalMember(),
         updateBannerTotalDepositAmount(),
+        updateTotalumberOfShare()
       ]);
     }
-    
+
     return Promise.all([
       updateBannerTotalMember(),
       updateBannerTotalDepositAmount(),
+      updateTotalumberOfShare()
     ]);
   } catch (err) {
     console.error('Something went wrong during creating banner:', err);
@@ -69,16 +123,15 @@ const createBanner = async () => {
   }
 };
 
-
-const getBanner = async()=>
-{
-  const result = await BannerMOdel.find()
-  return result
-}
+const getBanner = async () => {
+  const result = await BannerMOdel.find();
+  return result;
+};
 
 export const BannerServeces = {
   createBanner,
   updateBannerTotalMember,
   updateBannerTotalDepositAmount,
-  getBanner
+  updateTotalumberOfShare,
+  getBanner,
 };

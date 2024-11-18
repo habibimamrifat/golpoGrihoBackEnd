@@ -26,13 +26,15 @@ const approveOrDeclineAnInstallment = async (
 ) => {
   const session = await mongoose.startSession();
   try {
-    session.startTransaction();
+
+   session.startTransaction();
+
+
     const updateStatus = await InstallmentListtModel.updateOne(
       {
         id: id,
         'installmentList._id': new mongoose.Types.ObjectId(
-          installmentStatus.installmentList_id,
-        ),
+          installmentStatus.installmentList_id),
       },
       {
         $set: {
@@ -58,12 +60,12 @@ const approveOrDeclineAnInstallment = async (
             totanNumberOfInstallment: { $sum: 1 },
           },
         },
-      ]);
+      ]).session(session);
 
       return totalInstallment.length > 0
         ? {
             totalDeposit: totalInstallment[0].totalDeposit,
-            totalNumberOfInstallments: totalInstallment[0].approvedCount,
+            totalNumberOfInstallments: totalInstallment[0].totanNumberOfInstallment,
           }
         : {
             totalDeposit: 0,
@@ -72,6 +74,7 @@ const approveOrDeclineAnInstallment = async (
     };
 
     const totalDepositAndInstallmetCounnt = await calculateTotalInstallment(id);
+    console.log("the data",totalDepositAndInstallmetCounnt)
 
     const updateInstallmets = await InstallmentListtModel.updateOne(
       { id: id },
@@ -90,12 +93,17 @@ const approveOrDeclineAnInstallment = async (
       { new: true, session },
     );
 
-    await BannerServeces.updateBannerTotalDepositAmount();
+    await BannerServeces.updateBannerTotalDepositAmount(session);
     await session.commitTransaction();
+
+    
     return {
       updateShareDetail,
       message:"installment Accepted"
     }
+
+
+
   } catch (err) {
     await session.abortTransaction();
     throw Error('somethig went wrong');

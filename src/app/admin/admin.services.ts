@@ -70,13 +70,31 @@ const findPrecedentAndVp = async () => {
 };
 
 const acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
-  const result = await UserModel.findOneAndUpdate(
-    { id: id },
-    { requestState: requestState },
-    { new: true },
-  );
-  await BannerServeces.updateBannerTotalMember()
-  return result;
+  const session = await mongoose.startSession()
+  try {
+    session.startTransaction()
+    const result = await UserModel.findOneAndUpdate(
+      { id: id },
+      { requestState: requestState },
+      { new: true ,session},
+    );
+    if(!result)
+    {
+      throw Error("member not found")
+    }
+
+    await BannerServeces.updateBannerTotalMember(session)
+    await BannerServeces.updateTotalumberOfShare(session)
+
+    await session. commitTransaction()
+
+    return result
+  } 
+  catch (err) {
+    await session.abortTransaction()
+    await session.endSession()
+    throw Error('something wennt wrong');
+  }
 };
 
 const makePrecidentOrVp = async (id: string, role: string) => {
@@ -95,16 +113,17 @@ const makePrecidentOrVp = async (id: string, role: string) => {
   }
 };
 
-
-const updateAccuiredNumberOfShareOfAMember = async (id: string, numberOfShares: string) => {
-  
-    const result = await ShareDetailModel.findOneAndUpdate(
-      { id: id },
-      {  numberOfShareWonedPersonally:numberOfShares },
-      { new: true },
-    );
-    return result;
- 
+const updateAccuiredNumberOfShareOfAMember = async (
+  id: string,
+  numberOfShares: string,
+) => {
+  const result = await ShareDetailModel.findOneAndUpdate(
+    { id: id },
+    { numberOfShareWonedPersonally: numberOfShares },
+    { new: true },
+  );
+  await BannerServeces.updateTotalumberOfShare();
+  return result;
 };
 
 const removePresedentOrVpRole = async (id: string) => {
@@ -117,8 +136,12 @@ const removePresedentOrVpRole = async (id: string) => {
 };
 
 const updateValueOfEachShare = async (valueOfEachShare: string) => {
-  const result = await BannerMOdel.updateMany({},{valueOfEachShare:valueOfEachShare},{new:true})
-  return result
+  const result = await BannerMOdel.updateMany(
+    {},
+    { valueOfEachShare: valueOfEachShare },
+    { new: true },
+  );
+  return result;
 };
 
 const deleteMember = async (id: string) => {
@@ -147,10 +170,12 @@ const deleteMember = async (id: string) => {
     );
     await session.commitTransaction();
 
-    await BannerServeces.updateBannerTotalMember()
+    await BannerServeces.updateBannerTotalMember();
 
-
-    return { message: "Member and related data successfully marked as deleted", success: true };
+    return {
+      message: 'Member and related data successfully marked as deleted',
+      success: true,
+    };
   } catch (err) {
     console.log(err);
     session.abortTransaction();
@@ -168,5 +193,5 @@ export const adminServeces = {
   removePresedentOrVpRole,
   deleteMember,
   updateAccuiredNumberOfShareOfAMember,
-  updateValueOfEachShare
+  updateValueOfEachShare,
 };

@@ -36,11 +36,11 @@ const findPrecedentAndVp = asyncCatch(async (req, res) => {
 const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
   const { id, requestState } = req.body;
   // console.log(req.body)
-
   const result = await adminServeces.acceptOrCacelmemberRequest(
     id,
-    requestState,
+    requestState
   );
+
   responseHandeler(res, {
     status: 200,
     success: true,
