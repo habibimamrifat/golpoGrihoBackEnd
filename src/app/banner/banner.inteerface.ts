@@ -1,5 +1,8 @@
 export type TBaner={
-    totalDepositedAmmount:number,
-    totalMember:number,
-    currentTotalBalance:number
+    totalMember:number;
+    totalNumberOfShare:number;
+    valueOfEachShare:number;
+    totalNumberOfInvestment:number;
+    totalDepositedAmmount:number;
+    grossTotalBalance:number;
 }

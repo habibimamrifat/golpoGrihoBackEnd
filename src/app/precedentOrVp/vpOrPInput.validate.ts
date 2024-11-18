@@ -4,7 +4,7 @@ const acceptOrDenyVpOrpSchema = z.object({
   id: z.string(),
   installmentStatus: z.object({
     status: z.enum(["approved", "denied"]),
-    _id: z.string()
+    installmentList_id: z.string()
   }),
 });
 

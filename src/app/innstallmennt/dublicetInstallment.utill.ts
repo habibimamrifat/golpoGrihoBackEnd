@@ -1,3 +1,4 @@
+import { BannerMOdel } from '../banner/banner.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { TInstallment } from './installment.interface';
 import { InstallmentListtModel } from './installment.model';
@@ -20,27 +21,47 @@ const dublicetDepositCheck = async (id: string, deposit: TInstallment) => {
   }
 };
 
-const installmentLOwerLimitCheck = async (incommingAmmount: number) => {
+const installmentLOwerLimitCheck = async (
+  memberId: string,
+  incommingAmmount: number,
+) => {
+  console.log('from check', incommingAmmount);
 
-  console.log("from check",incommingAmmount)
-
-  const installmentLowerLimit = await ShareDetailModel.findOne();
+  const installmentLowerLimit = await BannerMOdel.findOne();
   if (installmentLowerLimit) {
     if (installmentLowerLimit.valueOfEachShare > incommingAmmount) {
       throw Error('Installment lowerLimit is not satisfied');
-    } 
-    else {
-      const isRound = (incommingAmmount % installmentLowerLimit.valueOfEachShare) === 0 ? true :false
-      if(isRound)
-      {
-        return true
-      }
-      else{
-        throw Error('the istallment ammount can not be devided in round number off month. please check your input or cotact admin');
+    } else {
+      const numberOfAccuredShare = await ShareDetailModel.findOne({
+        id: memberId,
+      });
+      if (numberOfAccuredShare) {
+        const isInstallmentLowerLimitAccordingToShare =
+          installmentLowerLimit.valueOfEachShare *
+          numberOfAccuredShare?.numberOfShareWonedPersonally;
+
+        if (isInstallmentLowerLimitAccordingToShare <= incommingAmmount) 
+        {
+          const isRound =
+            incommingAmmount % installmentLowerLimit.valueOfEachShare === 0;
+          if (isRound) {
+            return true;
+          } else {
+            throw Error(
+              'the istallment ammount can not be devided in round number off month. please check your input or cotact admin',
+            );
+          }
+        }
+        else
+        {
+          throw Error("you are trying to pass installment Which is low. according to your accured share")
+        }
       }
     }
   }
 };
 
-
-export const installmetUtill = { dublicetDepositCheck,installmentLOwerLimitCheck };
+export const installmetUtill = {
+  dublicetDepositCheck,
+  installmentLOwerLimitCheck,
+};

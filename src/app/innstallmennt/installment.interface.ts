@@ -20,7 +20,7 @@ export type TInstallment = {
   installmentAmount: number;
 
   transactionImg?: string;
-  acceptedBy?: string;
+  acceptedBy: string;
   status: 'waiting' | 'declined' | 'approved';
   installmentDate?: Date;
 };

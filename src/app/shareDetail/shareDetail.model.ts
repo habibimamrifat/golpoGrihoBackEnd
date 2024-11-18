@@ -3,12 +3,20 @@ import { TShareDetail } from "./shareDetail.iterface";
 
 const ShareDetailSchema = new Schema<TShareDetail>({
     id: { type: String, required: true },
-    numberOfShare: { type: Number, required: true, default:1},
-    valueOfEachShare: { type: Number, required: true, default:1000 },
-    numberOfIstallmet: { type: Number, required: true, default:0 },
-    totalIstallmetAmmout: { type: Number, required: true, default:0 },
-    grossBalance: { type: Number, required: true, default:0 },
-    totalprofit: { type: Number, required: true, default:0 },
+    numberOfShareWonedPersonally: { type: Number, required: true, default:1},
+    numberOfPersonalIstallmet: { type: Number, required: true, default:0 },
+    totalPersonalIstallmetAmmout: { type: Number, required: true, default:0 },
+    grossPersonalBalance: { type: Number, required: true, default:0 },
+    totalPersonalprofit: { type: Number, required: true, default:0 },
+    state:{
+      type:String,
+      enum:["Profitable","In Loss","Nutral"],
+      default:"Nutral"
+    },
+    isDelited:{
+      type:Boolean,
+      default:false
+    }
   });
   
   // Create and export the Mongoose model

@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { BannerServeces } from '../banner/banner.servicces';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
+import { BannerMOdel } from '../banner/banner.model';
 
 const findAllMember = async () => {
   const allMambers = await memberModel
@@ -99,7 +100,7 @@ const updateAccuiredNumberOfShareOfAMember = async (id: string, numberOfShares: 
   
     const result = await ShareDetailModel.findOneAndUpdate(
       { id: id },
-      {  numberOfShare:numberOfShares },
+      {  numberOfShareWonedPersonally:numberOfShares },
       { new: true },
     );
     return result;
@@ -116,7 +117,7 @@ const removePresedentOrVpRole = async (id: string) => {
 };
 
 const updateValueOfEachShare = async (valueOfEachShare: string) => {
-  const result = await ShareDetailModel.updateMany({},{valueOfEachShare:valueOfEachShare},{new:true})
+  const result = await BannerMOdel.updateMany({},{valueOfEachShare:valueOfEachShare},{new:true})
   return result
 };
 
@@ -135,6 +136,11 @@ const deleteMember = async (id: string) => {
       { new: true, session },
     );
     const deletedIstallmet = await InstallmentListtModel.findOneAndUpdate(
+      { id: id },
+      { isDelited: true },
+      { new: true, session },
+    );
+    const deleteShareDetail = await ShareDetailModel.findOneAndUpdate(
       { id: id },
       { isDelited: true },
       { new: true, session },

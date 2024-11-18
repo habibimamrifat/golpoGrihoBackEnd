@@ -1,9 +1,10 @@
 export type TShareDetail={
     id:string;
-    numberOfShare:number;
-    valueOfEachShare:number;
-    numberOfIstallmet:number;
-    totalIstallmetAmmout:number;
-    grossBalance:number;
-    totalprofit:number;
+    numberOfShareWonedPersonally:number;
+    numberOfPersonalIstallmet:number;
+    totalPersonalIstallmetAmmout:number;
+    grossPersonalBalance:number;
+    totalPersonalprofit:number;
+    state:"Profitable"|"In Loss"|"Nutral"
+    isDelited:boolean
 }

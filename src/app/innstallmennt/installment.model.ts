@@ -44,6 +44,7 @@ const InstallmentSchema = new Schema<TInstallment>({
   acceptedBy: {
     type: String,
     required: false,
+    default:null
   },
   status: {
     type: String,
@@ -93,7 +94,7 @@ InstallmentListSchema.pre('save', async function (next) {
 });
 
 // Create Mongoose models
-export const InstallmentListtModel = model(
+export const InstallmentListtModel = model<TInstallmentList>(
   'Installment',
   InstallmentListSchema,
 );

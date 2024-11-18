@@ -1,5 +1,4 @@
 import { installmetUtill } from './dublicetInstallment.utill';
-import { TInstallment } from './installment.interface';
 import { InstallmentListtModel } from './installment.model';
 
 // const createInstallmentList = async (depositData: TInstallment) => {
@@ -10,7 +9,7 @@ import { InstallmentListtModel } from './installment.model';
 const makeAInstallment = async (depositData: any) => {
   const { id, deposit } = depositData;
 
-  const satisfyLimit =await installmetUtill.installmentLOwerLimitCheck(deposit.installmentAmount);
+  const satisfyLimit =await installmetUtill.installmentLOwerLimitCheck(id,deposit.installmentAmount);
   if (satisfyLimit) {
     const dublicateDepositCheck = await installmetUtill.dublicetDepositCheck(id,deposit);
     if (!dublicateDepositCheck) {
