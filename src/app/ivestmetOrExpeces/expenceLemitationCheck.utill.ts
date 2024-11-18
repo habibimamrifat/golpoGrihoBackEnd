@@ -1,12 +1,15 @@
+import mongoose from 'mongoose';
 import { BannerMOdel } from '../banner/banner.model';
+import { InvestOrExpensesModel } from './investOrExpence.model';
 
 const expenceBeyondTotalCurrentBalanceCheck = async (
   expenceAmmount: number,
 ): Promise<{ success: boolean; message: string }> => {
   try {
     const bannerData = await BannerMOdel.findOne();
-    if (bannerData && typeof bannerData.currentTotalBalance === 'number') {
-      if (bannerData.currentTotalBalance >= expenceAmmount) {
+
+    if (bannerData && typeof bannerData.grossTotalBalance === 'number') {
+      if (bannerData.grossTotalBalance >= expenceAmmount) {
         return {
           success: true,
           message: 'Expense is within the current balance',
@@ -32,4 +35,48 @@ const expenceBeyondTotalCurrentBalanceCheck = async (
   }
 };
 
-export default expenceBeyondTotalCurrentBalanceCheck;
+const checkIfInvestment = async (investment_id: string | mongoose.Types.ObjectId): Promise<boolean> => {
+  try {
+
+    // Ensure `_id` is a string
+    const _id = typeof (investment_id) === 'object' && investment_id instanceof mongoose.Types.ObjectId ? investment_id.toHexString() : investment_id;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      throw new Error('Invalid investment ID');
+    }
+
+    // Find the investment document
+    const findInvestment = await InvestOrExpensesModel.findOne({
+      _id: new mongoose.Types.ObjectId(_id),
+    });
+
+    if (!findInvestment) {
+      throw new Error('Investment not found');
+    }
+
+    // Check if the document is an investment
+    return findInvestment.ExpencesType === 'investment';
+
+  } catch (err: any) {
+    console.error('Error in checkIfInvestment:', err.message);
+    throw new Error(err.message || 'Error occurred while checking investment');
+  }
+
+};
+
+const calcluateOfAsingleInstallment = async (investment_id: string) => {
+  const isInvestment = await checkIfInvestment(investment_id)
+  if(isInvestment)
+  {
+    const calculate = await InvestOrExpensesModel.aggregate([
+      {$match:{_id:investment_id}}
+    ])
+  }
+};
+
+export const investmentUtillFunctions = {
+  expenceBeyondTotalCurrentBalanceCheck,
+  checkIfInvestment,
+  calcluateOfAsingleInstallment
+};

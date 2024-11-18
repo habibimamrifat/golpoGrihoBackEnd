@@ -3,6 +3,7 @@ import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { UserModel } from '../user/user.model';
 import { BannerMOdel } from './banner.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
+import { query } from 'express';
 
 const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
   try {
@@ -95,6 +96,35 @@ const updateTotalumberOfShare = async (session?: mongoose.ClientSession) => {
   }
 };
 
+const updateBannerGrossTotalBalance = async (
+  session?: mongoose.ClientSession,
+) => {
+  try {
+    const query = {
+      $group: {
+        _id: null,
+        grossTotalBalance: { $sum: '$grossPersonalBalance' },
+      },
+    };
+    const grossToTalBalance = session
+      ? await ShareDetailModel.aggregate([query]).session(session)
+      : await ShareDetailModel.aggregate([query]);
+    // console.log(grossToTalBalance)
+
+    const updateOption = session ? { new: true, session } : { new: true };
+    const updateGrossTotalBalanceOfBanner = await BannerMOdel.updateOne(
+      {},
+      { grossTotalBalance: grossToTalBalance[0].grossToTalBalance },
+      updateOption,
+    );
+    // return grossToTalBalance.length > 0 ? grossToTalBalance[0].grossToTalBalance :0
+    return updateGrossTotalBalanceOfBanner;
+  } catch (err) {
+    console.log('got problem in updateBannerGrossTotalBalance', err);
+    throw Error('got problem in updateBannerGrossTotalBalance');
+  }
+};
+
 //always  keep it in the end
 const createBanner = async () => {
   try {
@@ -108,14 +138,16 @@ const createBanner = async () => {
         }),
         updateBannerTotalMember(),
         updateBannerTotalDepositAmount(),
-        updateTotalumberOfShare()
+        updateTotalumberOfShare(),
+        updateBannerGrossTotalBalance(),
       ]);
     }
 
     return Promise.all([
       updateBannerTotalMember(),
       updateBannerTotalDepositAmount(),
-      updateTotalumberOfShare()
+      updateTotalumberOfShare(),
+      updateBannerGrossTotalBalance(),
     ]);
   } catch (err) {
     console.error('Something went wrong during creating banner:', err);
@@ -134,4 +166,5 @@ export const BannerServeces = {
   updateBannerTotalDepositAmount,
   updateTotalumberOfShare,
   getBanner,
+  updateBannerGrossTotalBalance,
 };

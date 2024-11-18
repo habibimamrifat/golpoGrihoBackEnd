@@ -117,13 +117,30 @@ const updateAccuiredNumberOfShareOfAMember = async (
   id: string,
   numberOfShares: string,
 ) => {
-  const result = await ShareDetailModel.findOneAndUpdate(
-    { id: id },
-    { numberOfShareWonedPersonally: numberOfShares },
-    { new: true },
-  );
-  await BannerServeces.updateTotalumberOfShare();
-  return result;
+  const session = await mongoose.startSession()
+  try{
+    session.startTransaction()
+    const result = await ShareDetailModel.findOneAndUpdate(
+      { id: id },
+      { numberOfShareWonedPersonally: numberOfShares },
+      { new: true,session },
+    );
+
+    if(!result)
+    {
+      throw Error("member not founnd")
+    }
+    await BannerServeces.updateTotalumberOfShare(session);
+
+    await session.commitTransaction()
+    return result;
+  }catch(err:any)
+  {
+    // console.log(err)
+    await session.abortTransaction()
+    await session.endSession()
+    throw Error(err.message||"something Went wrong")
+  }
 };
 
 const removePresedentOrVpRole = async (id: string) => {

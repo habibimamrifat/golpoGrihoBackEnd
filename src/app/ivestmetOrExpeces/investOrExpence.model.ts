@@ -19,15 +19,17 @@ const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
 // Define the Main Schema for Investment or Expenses
 const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
   motiveName: { type: String, required: true },
+  expenceImg: { type: String, required: false },
+  
   ExpencesType: {
     type: String,
     enum: ['investment', 'expence'],
     required: true,
   },
   ammountSpent: { type: Number, required: true },
-  profitGenareted:{type:Number, required:false ,default:0},
-  madeLoss:{type:Number, required:false ,default:0},
-  expenceImg: { type: String, required: false },
+  profitGenareted:{type:Number ,default:0},
+  madeLoss:{type:Number,default:0},
+  
   investmentCycle: {
     type: [InvestmentCycleSchema],
     default:[]

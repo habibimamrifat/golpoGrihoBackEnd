@@ -29,6 +29,16 @@ const approveOrDeclineAnInstallment = async (
 
    session.startTransaction();
 
+    const installmentData = await InstallmentListtModel.findOne({
+      id: id,
+      'installmentList._id': new mongoose.Types.ObjectId(
+        installmentStatus.installmentList_id),
+    }).session(session)
+
+    console.log(installmentData)
+
+    // const incrementAmmount = installmentData ? installmentData.installmentAmount : 0
+
 
     const updateStatus = await InstallmentListtModel.updateOne(
       {
@@ -74,6 +84,7 @@ const approveOrDeclineAnInstallment = async (
     };
 
     const totalDepositAndInstallmetCounnt = await calculateTotalInstallment(id);
+
     console.log("the data",totalDepositAndInstallmetCounnt)
 
     const updateInstallmets = await InstallmentListtModel.updateOne(
@@ -89,6 +100,10 @@ const approveOrDeclineAnInstallment = async (
           totalPersonalIstallmetAmmout: totalDepositAndInstallmetCounnt.totalDeposit,
           numberOfPersonalIstallmet: totalDepositAndInstallmetCounnt.totalNumberOfInstallments,
         },
+        $inc: {
+          grossPersonalBalance: installmentData?.installmentAmount
+        },
+        
       },
       { new: true, session },
     );

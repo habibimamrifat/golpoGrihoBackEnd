@@ -7,10 +7,10 @@ export type TIvestmentCycleIput = {
 
 export type TIvestOrExpennces = {
   motiveName: string;
+  expenceImg?: string;
   ExpencesType: 'investment' | 'expence';
   ammountSpent: number;
-  profitGenareted?:number;
-  madeLoss?:number;
-  expenceImg?: string;
+  profitGenareted:number;
+  madeLoss:number;
   investmentCycle?: TIvestmentCycleIput[];
 };
