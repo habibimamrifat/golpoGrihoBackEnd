@@ -6,18 +6,6 @@ import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { stringify } from 'querystring';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
-  // const isInLimit = await expenceBeyondTotalCurrentBalanceCheck(
-  //   payload.ammountSpent,
-  // );
-  // if (isInLimit.success) {
-  //   const result = await InvestOrExpensesModel.create(payload);
-  //   return result;
-  // } else {
-  //   throw new Error(`${isInLimit.message}`);
-  // }
-
-  // ............................................................................................
-
   const result = await InvestOrExpensesModel.create(payload);
   if(result)
   {

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { BannerMOdel } from '../banner/banner.model';
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
+import { BannerServeces } from '../banner/banner.servicces';
 
 const expenceBeyondTotalCurrentBalanceCheck = async (
   expenceAmmount: number,
@@ -82,22 +83,59 @@ const calclutionForExpences = async (
   amountSpent: number,
   session?: mongoose.ClientSession,
 ) => {
-  
+
+try
+{
   const bannerData = session
-    ? await BannerMOdel.findOne({}).session(session) 
-    : await BannerMOdel.findOne({}); 
-  if (!bannerData) {
-    throw new Error("Banner data not found");
+  ? await BannerMOdel.findOne({}).session(session)
+  : await BannerMOdel.findOne({});
+
+  if (!bannerData) 
+  {
+    throw new Error('Banner data not found');
   }
+
   const expensePerHead = amountSpent / bannerData.totalNumberOfShare;
 
-  const allMemberShareDetail =session? await ShareDetailModel.find().session(session)
-  :await ShareDetailModel.find()
+  const allMemberShareDetail = session
+  ? await ShareDetailModel.find().session(session)
+  : await ShareDetailModel.find();
 
-  const updateShareDetailArr = allMemberShareDetail.map((eachShareDetail)=>{
-    console.log("each share detail arr",eachShareDetail)
+  const updateArr: { id: string; grossPersonalBalanceUpdated: number }[] = [];
+
+  allMemberShareDetail.forEach((eachShareDetail) => {
+    const grossPersonalBalanceUpdated =
+      eachShareDetail.grossPersonalBalance -
+      expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+    // console.log(grossPersonalBalanceUpdated);
+
+    updateArr.push({
+      id: eachShareDetail.id,
+      grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
+    });
+  });
+
+  // console.log('run map on it ',  updateArr);
+
+  const updateMembersGrossPersonalBalance = updateArr.map(async (eachupdate)=>{
+    const updateOption = session? {new:true, session}:{new:true}
+    return await ShareDetailModel.findOneAndUpdate
+    (
+      {id:eachupdate.id},
+      {grossPersonalBalance:eachupdate.grossPersonalBalanceUpdated},
+      updateOption
+    ) 
   })
 
+  const result= await Promise.all(updateMembersGrossPersonalBalance)
+  const bannerGrosstotalBalanceUpdate =session ? await BannerServeces.updateBannerGrossTotalBalance(session):await BannerServeces.updateBannerGrossTotalBalance()
+  return result
+}
+catch(err:any)
+{
+  console.log("error occared in calclutionForExpences")
+  throw Error(err.message||"error occared in calclutionForExpences")
+}
 
 };
 

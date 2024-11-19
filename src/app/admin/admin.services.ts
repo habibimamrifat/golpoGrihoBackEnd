@@ -70,29 +70,27 @@ const findPrecedentAndVp = async () => {
 };
 
 const acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
-  const session = await mongoose.startSession()
+  const session = await mongoose.startSession();
   try {
-    session.startTransaction()
+    session.startTransaction();
     const result = await UserModel.findOneAndUpdate(
       { id: id },
       { requestState: requestState },
-      { new: true ,session},
+      { new: true, session },
     );
-    if(!result)
-    {
-      throw Error("member not found")
+    if (!result) {
+      throw Error('member not found');
     }
 
-    await BannerServeces.updateBannerTotalMember(session)
-    await BannerServeces.updateTotalumberOfShare(session)
+    await BannerServeces.updateBannerTotalMember(session);
+    await BannerServeces.updateBannerTotalumberOfShare(session);
 
-    await session. commitTransaction()
+    await session.commitTransaction();
 
-    return result
-  } 
-  catch (err) {
-    await session.abortTransaction()
-    await session.endSession()
+    return result;
+  } catch (err) {
+    await session.abortTransaction();
+    await session.endSession();
     throw Error('something wennt wrong');
   }
 };
@@ -117,29 +115,27 @@ const updateAccuiredNumberOfShareOfAMember = async (
   id: string,
   numberOfShares: string,
 ) => {
-  const session = await mongoose.startSession()
-  try{
-    session.startTransaction()
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
     const result = await ShareDetailModel.findOneAndUpdate(
       { id: id },
       { numberOfShareWonedPersonally: numberOfShares },
-      { new: true,session },
+      { new: true, session },
     );
 
-    if(!result)
-    {
-      throw Error("member not founnd")
+    if (!result) {
+      throw Error('member not founnd');
     }
-    await BannerServeces.updateTotalumberOfShare(session);
+    await BannerServeces.updateBannerTotalumberOfShare(session);
 
-    await session.commitTransaction()
+    await session.commitTransaction();
     return result;
-  }catch(err:any)
-  {
+  } catch (err: any) {
     // console.log(err)
-    await session.abortTransaction()
-    await session.endSession()
-    throw Error(err.message||"something Went wrong")
+    await session.abortTransaction();
+    await session.endSession();
+    throw Error(err.message || 'something Went wrong');
   }
 };
 

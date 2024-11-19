@@ -114,6 +114,7 @@ const approveOrDeclineAnInstallment = async (
       );
   
       await BannerServeces.updateBannerTotalDepositAmount(session);
+      await BannerServeces.updateBannerGrossTotalBalance(session)
   
       await session.commitTransaction();
   

@@ -70,7 +70,9 @@ const updateBannerTotalDepositAmount = async (
   }
 };
 
-const updateTotalumberOfShare = async (session?: mongoose.ClientSession) => {
+const updateBannerTotalumberOfShare = async (
+  session?: mongoose.ClientSession,
+) => {
   const query = {
     $group: {
       _id: null,
@@ -103,22 +105,22 @@ const updateBannerGrossTotalBalance = async (
     const query = {
       $group: {
         _id: null,
-        grossTotalBalance: { $sum: '$grossPersonalBalance' },
+        sumOfAllGrossPersonalBalance: { $sum: '$grossPersonalBalance' },
       },
     };
     const grossToTalBalance = session
       ? await ShareDetailModel.aggregate([query]).session(session)
       : await ShareDetailModel.aggregate([query]);
-    // console.log(grossToTalBalance)
+    console.log("yooo i ammm",grossToTalBalance)
 
     const updateOption = session ? { new: true, session } : { new: true };
     const updateGrossTotalBalanceOfBanner = await BannerMOdel.updateOne(
       {},
-      { grossTotalBalance: grossToTalBalance[0].grossToTalBalance },
+      { grossTotalBalance: grossToTalBalance[0].sumOfAllGrossPersonalBalance || 0 },
       updateOption,
     );
-    // return grossToTalBalance.length > 0 ? grossToTalBalance[0].grossToTalBalance :0
-    return updateGrossTotalBalanceOfBanner;
+
+    // return updateGrossTotalBalanceOfBanner;
   } catch (err) {
     console.log('got problem in updateBannerGrossTotalBalance', err);
     throw Error('got problem in updateBannerGrossTotalBalance');
@@ -138,7 +140,7 @@ const createBanner = async () => {
         }),
         updateBannerTotalMember(),
         updateBannerTotalDepositAmount(),
-        updateTotalumberOfShare(),
+        updateBannerTotalumberOfShare(),
         updateBannerGrossTotalBalance(),
       ]);
     }
@@ -146,7 +148,7 @@ const createBanner = async () => {
     return Promise.all([
       updateBannerTotalMember(),
       updateBannerTotalDepositAmount(),
-      updateTotalumberOfShare(),
+      updateBannerTotalumberOfShare(),
       updateBannerGrossTotalBalance(),
     ]);
   } catch (err) {
@@ -164,7 +166,7 @@ export const BannerServeces = {
   createBanner,
   updateBannerTotalMember,
   updateBannerTotalDepositAmount,
-  updateTotalumberOfShare,
+  updateBannerTotalumberOfShare,
   getBanner,
   updateBannerGrossTotalBalance,
 };
