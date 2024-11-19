@@ -26,102 +26,110 @@ const approveOrDeclineAnInstallment = async (
 ) => {
   const session = await mongoose.startSession();
   try {
+    session.startTransaction();
 
-   session.startTransaction();
+    const installmentData = await InstallmentListtModel.aggregate([
+      {$match:{id:id}},
+      {$unwind:"$installmentList"},
+      {$match:{"installmentList._id": new mongoose.Types.ObjectId(
+        installmentStatus.installmentList_id)}}
 
-    const installmentData = await InstallmentListtModel.findOne({
-      id: id,
-      'installmentList._id': new mongoose.Types.ObjectId(
-        installmentStatus.installmentList_id),
-    }).session(session)
+    ]).session(session);;
 
-    console.log(installmentData)
+    console.log(installmentData[0].installmentList.status);
 
     // const incrementAmmount = installmentData ? installmentData.installmentAmount : 0
 
-
-    const updateStatus = await InstallmentListtModel.updateOne(
-      {
-        id: id,
-        'installmentList._id': new mongoose.Types.ObjectId(
-          installmentStatus.installmentList_id),
-      },
-      {
-        $set: {
-          'installmentList.$.status': installmentStatus.status,
-          'installmentList.$.acceptedBy': VpOrPId,
-        },
-      },
-      {
-        new: true,
-        session,
-      },
-    );
-
-    const calculateTotalInstallment = async (id: string) => {
-      const totalInstallment = await InstallmentListtModel.aggregate([
-        { $match: { id: id } },
-        { $unwind: '$installmentList' },
-        { $match: { 'installmentList.status': 'approved' } },
+    if(installmentData[0].installmentList.status === "waiting")
+    {
+      const updateStatus = await InstallmentListtModel.updateOne(
         {
-          $group: {
-            _id: null,
-            totalDeposit: { $sum: '$installmentList.installmentAmount' },
-            totanNumberOfInstallment: { $sum: 1 },
+          id: id,
+          'installmentList._id': new mongoose.Types.ObjectId(
+            installmentStatus.installmentList_id
+          ),
+        },
+        {
+          $set: {
+            'installmentList.$.status': installmentStatus.status,
+            'installmentList.$.acceptedBy': VpOrPId,
           },
         },
-      ]).session(session);
-
-      return totalInstallment.length > 0
-        ? {
-            totalDeposit: totalInstallment[0].totalDeposit,
-            totalNumberOfInstallments: totalInstallment[0].totanNumberOfInstallment,
-          }
-        : {
-            totalDeposit: 0,
-            totalNumberOfInstallments: 0,
-          };
-    };
-
-    const totalDepositAndInstallmetCounnt = await calculateTotalInstallment(id);
-
-    console.log("the data",totalDepositAndInstallmetCounnt)
-
-    const updateInstallmets = await InstallmentListtModel.updateOne(
-      { id: id },
-      { $set: { totalDeposit: totalDepositAndInstallmetCounnt.totalDeposit } },
-      { new: true, session },
-    );
-
-    const updateShareDetail = await ShareDetailModel.updateOne(
-      { id: id },
-      {
-        $set: {
-          totalPersonalIstallmetAmmout: totalDepositAndInstallmetCounnt.totalDeposit,
-          numberOfPersonalIstallmet: totalDepositAndInstallmetCounnt.totalNumberOfInstallments,
+        {
+          new: true,
+          session,
         },
-        $inc: {
-          grossPersonalBalance: installmentData?.installmentAmount
+      );
+  
+      const calculateTotalInstallment = async (id: string) => {
+        const totalInstallment = await InstallmentListtModel.aggregate([
+          { $match: { id: id } },
+          { $unwind: '$installmentList' },
+          { $match: { 'installmentList.status': 'approved' } },
+          {
+            $group: {
+              _id: null,
+              totalDeposit: { $sum: '$installmentList.installmentAmount' },
+              totanNumberOfInstallment: { $sum: 1 },
+            },
+          },
+        ]).session(session);
+  
+        return totalInstallment.length > 0
+          ? {
+              totalDeposit: totalInstallment[0].totalDeposit,
+              totalNumberOfInstallments:
+                totalInstallment[0].totanNumberOfInstallment,
+            }
+          : {
+              totalDeposit: 0,
+              totalNumberOfInstallments: 0,
+            };
+      };
+  
+      const totalDepositAndInstallmetCounnt = await calculateTotalInstallment(id);
+  
+      // console.log('the data', totalDepositAndInstallmetCounnt);
+  
+      const updateInstallmets = await InstallmentListtModel.updateOne(
+        { id: id },
+        { $set: { totalDeposit: totalDepositAndInstallmetCounnt.totalDeposit } },
+        { new: true, session },
+      );
+  
+      const updateShareDetail = await ShareDetailModel.updateOne(
+        { id: id },
+        {
+          $set: {
+            totalPersonalIstallmetAmmout:
+              totalDepositAndInstallmetCounnt.totalDeposit,
+            numberOfPersonalIstallmet:
+              totalDepositAndInstallmetCounnt.totalNumberOfInstallments,
+          },
+          $inc: {
+            grossPersonalBalance: installmentData[0].installmentList.installmentAmount,
+          },
         },
-        
-      },
-      { new: true, session },
-    );
-
-    await BannerServeces.updateBannerTotalDepositAmount(session);
-    await session.commitTransaction();
-
-    
-    return {
-      updateShareDetail,
-      message:"installment Accepted"
+        { new: true, session },
+      );
+  
+      await BannerServeces.updateBannerTotalDepositAmount(session);
+  
+      await session.commitTransaction();
+  
+      return {
+        updateShareDetail,
+        message: 'installment Accepted',
+      };
+    }
+    else
+    {
+      throw Error(`cant be ${installmentStatus.status} same request which is already been ${installmentData[0].installmentList.status}`)
     }
 
-
-
-  } catch (err) {
+  } catch (err:any) {
     await session.abortTransaction();
-    throw Error('somethig went wrong');
+    throw Error(err.message || 'somethig went wrong');
   } finally {
     await session.endSession();
   }

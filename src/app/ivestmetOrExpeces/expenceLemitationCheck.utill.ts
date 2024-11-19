@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { BannerMOdel } from '../banner/banner.model';
 import { InvestOrExpensesModel } from './investOrExpence.model';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 
 const expenceBeyondTotalCurrentBalanceCheck = async (
   expenceAmmount: number,
@@ -35,11 +36,16 @@ const expenceBeyondTotalCurrentBalanceCheck = async (
   }
 };
 
-const checkIfInvestment = async (investment_id: string | mongoose.Types.ObjectId): Promise<boolean> => {
+const checkIfInvestment = async (
+  investment_id: string | mongoose.Types.ObjectId,
+): Promise<boolean> => {
   try {
-
     // Ensure `_id` is a string
-    const _id = typeof (investment_id) === 'object' && investment_id instanceof mongoose.Types.ObjectId ? investment_id.toHexString() : investment_id;
+    const _id =
+      typeof investment_id === 'object' &&
+      investment_id instanceof mongoose.Types.ObjectId
+        ? investment_id.toHexString()
+        : investment_id;
 
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -57,26 +63,47 @@ const checkIfInvestment = async (investment_id: string | mongoose.Types.ObjectId
 
     // Check if the document is an investment
     return findInvestment.ExpencesType === 'investment';
-
   } catch (err: any) {
     console.error('Error in checkIfInvestment:', err.message);
     throw new Error(err.message || 'Error occurred while checking investment');
   }
-
 };
 
 const calcluateOfAsingleInstallment = async (investment_id: string) => {
-  const isInvestment = await checkIfInvestment(investment_id)
-  if(isInvestment)
-  {
+  const isInvestment = await checkIfInvestment(investment_id);
+  if (isInvestment) {
     const calculate = await InvestOrExpensesModel.aggregate([
-      {$match:{_id:investment_id}}
-    ])
+      { $match: { _id: investment_id } },
+    ]);
   }
+};
+
+const calclutionForExpences = async (
+  amountSpent: number,
+  session?: mongoose.ClientSession,
+) => {
+  
+  const bannerData = session
+    ? await BannerMOdel.findOne({}).session(session) 
+    : await BannerMOdel.findOne({}); 
+  if (!bannerData) {
+    throw new Error("Banner data not found");
+  }
+  const expensePerHead = amountSpent / bannerData.totalNumberOfShare;
+
+  const allMemberShareDetail =session? await ShareDetailModel.find().session(session)
+  :await ShareDetailModel.find()
+
+  const updateShareDetailArr = allMemberShareDetail.map((eachShareDetail)=>{
+    console.log("each share detail arr",eachShareDetail)
+  })
+
+
 };
 
 export const investmentUtillFunctions = {
   expenceBeyondTotalCurrentBalanceCheck,
   checkIfInvestment,
-  calcluateOfAsingleInstallment
+  calcluateOfAsingleInstallment,
+  calclutionForExpences,
 };
