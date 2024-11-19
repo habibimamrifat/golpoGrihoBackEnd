@@ -39,6 +39,7 @@ const expenceBeyondTotalCurrentBalanceCheck = async (
 
 const checkIfInvestment = async (
   investment_id: string | mongoose.Types.ObjectId,
+  session?: mongoose.ClientSession,
 ): Promise<boolean> => {
   try {
     // Ensure `_id` is a string
@@ -54,9 +55,13 @@ const checkIfInvestment = async (
     }
 
     // Find the investment document
-    const findInvestment = await InvestOrExpensesModel.findOne({
-      _id: new mongoose.Types.ObjectId(_id),
-    });
+    const findInvestment = session
+      ? await InvestOrExpensesModel.findOne({
+          _id: new mongoose.Types.ObjectId(_id),
+        }).session(session)
+      : await InvestOrExpensesModel.findOne({
+          _id: new mongoose.Types.ObjectId(_id),
+        });
 
     if (!findInvestment) {
       throw new Error('Investment not found');
@@ -79,69 +84,68 @@ const calcluateOfAsingleInstallment = async (investment_id: string) => {
   }
 };
 
-const calclutionForExpences = async (
+const calclutionForGrossReduction = async (
   amountSpent: number,
   session?: mongoose.ClientSession,
 ) => {
+  try {
+    const bannerData = session
+      ? await BannerMOdel.findOne({}).session(session)
+      : await BannerMOdel.findOne({});
 
-try
-{
-  const bannerData = session
-  ? await BannerMOdel.findOne({}).session(session)
-  : await BannerMOdel.findOne({});
+    if (!bannerData) {
+      throw new Error('Banner data not found');
+    }
 
-  if (!bannerData) 
-  {
-    throw new Error('Banner data not found');
-  }
+    const expensePerHead = amountSpent / bannerData.totalNumberOfShare;
 
-  const expensePerHead = amountSpent / bannerData.totalNumberOfShare;
+    const allMemberShareDetail = session
+      ? await ShareDetailModel.find().session(session)
+      : await ShareDetailModel.find();
 
-  const allMemberShareDetail = session
-  ? await ShareDetailModel.find().session(session)
-  : await ShareDetailModel.find();
+    const updateArr: { id: string; grossPersonalBalanceUpdated: number }[] = [];
 
-  const updateArr: { id: string; grossPersonalBalanceUpdated: number }[] = [];
+    allMemberShareDetail.forEach((eachShareDetail) => {
+      const grossPersonalBalanceUpdated =
+        eachShareDetail.grossPersonalBalance -
+        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+      // console.log(grossPersonalBalanceUpdated);
 
-  allMemberShareDetail.forEach((eachShareDetail) => {
-    const grossPersonalBalanceUpdated =
-      eachShareDetail.grossPersonalBalance -
-      expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
-    // console.log(grossPersonalBalanceUpdated);
-
-    updateArr.push({
-      id: eachShareDetail.id,
-      grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
+      updateArr.push({
+        id: eachShareDetail.id,
+        grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
+      });
     });
-  });
 
-  // console.log('run map on it ',  updateArr);
+    // console.log('run map on it ',  updateArr);
 
-  const updateMembersGrossPersonalBalance = updateArr.map(async (eachupdate)=>{
-    const updateOption = session? {new:true, session}:{new:true}
-    return await ShareDetailModel.findOneAndUpdate
-    (
-      {id:eachupdate.id},
-      {grossPersonalBalance:eachupdate.grossPersonalBalanceUpdated},
-      updateOption
-    ) 
-  })
+    const updateMembersGrossPersonalBalance = updateArr.map(
+      async (eachupdate) => {
+        const updateOption = session ? { new: true, session } : { new: true };
+        return await ShareDetailModel.findOneAndUpdate(
+          { id: eachupdate.id },
+          { grossPersonalBalance: eachupdate.grossPersonalBalanceUpdated },
+          updateOption,
+        );
+      },
+    );
 
-  const result= await Promise.all(updateMembersGrossPersonalBalance)
-  const bannerGrosstotalBalanceUpdate =session ? await BannerServeces.updateBannerGrossTotalBalance(session):await BannerServeces.updateBannerGrossTotalBalance()
-  return result
-}
-catch(err:any)
-{
-  console.log("error occared in calclutionForExpences")
-  throw Error(err.message||"error occared in calclutionForExpences")
-}
+    const result = await Promise.all(updateMembersGrossPersonalBalance);
 
+    const bannerGrosstotalBalanceUpdate = session
+      ? await BannerServeces.updateBannerGrossTotalBalance(session)
+      : await BannerServeces.updateBannerGrossTotalBalance();
+
+    return result;
+  } catch (err: any) {
+    console.log('error occared in calclutionForExpences');
+    throw Error(err.message || 'error occared in calclutionForExpences');
+  }
 };
 
 export const investmentUtillFunctions = {
   expenceBeyondTotalCurrentBalanceCheck,
   checkIfInvestment,
   calcluateOfAsingleInstallment,
-  calclutionForExpences,
+  calclutionForGrossReduction,
 };

@@ -4,6 +4,7 @@ import { UserModel } from '../user/user.model';
 import { BannerMOdel } from './banner.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { query } from 'express';
+import { InvestOrExpensesModel } from '../ivestmetOrExpeces/investOrExpence.model';
 
 const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
   try {
@@ -30,6 +31,66 @@ const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
   } catch (err) {
     console.error('Something went wrong in updateBannerTotalMember:', err);
     throw err;
+  }
+};
+
+const updateBannerTotalumberOfShare = async (
+  session?: mongoose.ClientSession,
+) => {
+  const query = {
+    $group: {
+      _id: null,
+      totalNumberOfShares: { $sum: '$numberOfShareWonedPersonally' },
+    },
+  };
+
+  try {
+    const totalNumberOfShare = session
+      ? await ShareDetailModel.aggregate([query]).session(session)
+      : await ShareDetailModel.aggregate([query]);
+
+    const updateOptions = session ? { new: true, session } : { new: true };
+
+    const updateBannerQuery = await BannerMOdel.updateOne(
+      {},
+      { totalNumberOfShare: totalNumberOfShare[0]?.totalNumberOfShares || 0 },
+      updateOptions,
+    );
+    return updateBannerQuery;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const updateBannerTotalNumberOfInvestment = async (
+  session?: mongoose.ClientSession,
+) => {
+  try {
+    const findAllInvestment = session
+      ? await InvestOrExpensesModel.find({
+          ExpencesType: 'investment',
+        }).session(session)
+      : await InvestOrExpensesModel.find({ ExpencesType: 'investment' });
+
+    if (!findAllInvestment) {
+      throw Error('total number of Investmtent couldent be processed');
+    }
+    // console.log("i ammmmm",findAllInvestment.length)
+    const updateOption = session ? { new: true, session } : { new: true };
+    const updateTotalNumberOfInvestment = await BannerMOdel.updateOne(
+      {},
+      {
+        totalNumberOfInvestment: findAllInvestment.length,
+      },
+      updateOption,
+    );
+    return updateTotalNumberOfInvestment
+  } catch (err: any) {
+    console.log('something went wrong in updateBannerTotalNumberOfInvestment');
+    throw Error(
+      err.message ||
+        'something went wrong in updateBannerTotalNumberOfInvestment',
+    );
   }
 };
 
@@ -70,34 +131,6 @@ const updateBannerTotalDepositAmount = async (
   }
 };
 
-const updateBannerTotalumberOfShare = async (
-  session?: mongoose.ClientSession,
-) => {
-  const query = {
-    $group: {
-      _id: null,
-      totalNumberOfShares: { $sum: '$numberOfShareWonedPersonally' },
-    },
-  };
-
-  try {
-    const totalNumberOfShare = session
-      ? await ShareDetailModel.aggregate([query]).session(session)
-      : await ShareDetailModel.aggregate([query]);
-
-    const updateOptions = session ? { new: true, session } : { new: true };
-
-    const updateBannerQuery = await BannerMOdel.updateOne(
-      {},
-      { totalNumberOfShare: totalNumberOfShare[0]?.totalNumberOfShares || 0 },
-      updateOptions,
-    );
-    return updateBannerQuery;
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 const updateBannerGrossTotalBalance = async (
   session?: mongoose.ClientSession,
 ) => {
@@ -111,12 +144,15 @@ const updateBannerGrossTotalBalance = async (
     const grossToTalBalance = session
       ? await ShareDetailModel.aggregate([query]).session(session)
       : await ShareDetailModel.aggregate([query]);
-    console.log("yooo i ammm",grossToTalBalance)
+    console.log('yooo i ammm', grossToTalBalance);
 
     const updateOption = session ? { new: true, session } : { new: true };
     const updateGrossTotalBalanceOfBanner = await BannerMOdel.updateOne(
       {},
-      { grossTotalBalance: grossToTalBalance[0].sumOfAllGrossPersonalBalance || 0 },
+      {
+        grossTotalBalance:
+          grossToTalBalance[0].sumOfAllGrossPersonalBalance || 0,
+      },
       updateOption,
     );
 
@@ -142,6 +178,7 @@ const createBanner = async () => {
         updateBannerTotalDepositAmount(),
         updateBannerTotalumberOfShare(),
         updateBannerGrossTotalBalance(),
+        updateBannerTotalNumberOfInvestment(),
       ]);
     }
 
@@ -150,6 +187,7 @@ const createBanner = async () => {
       updateBannerTotalDepositAmount(),
       updateBannerTotalumberOfShare(),
       updateBannerGrossTotalBalance(),
+      updateBannerTotalNumberOfInvestment(),
     ]);
   } catch (err) {
     console.error('Something went wrong during creating banner:', err);

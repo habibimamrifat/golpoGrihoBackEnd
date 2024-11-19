@@ -6,22 +6,37 @@ import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { stringify } from 'querystring';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
-  const result = await InvestOrExpensesModel.create(payload);
-  if(result)
-  {
-    console.log(result)
-    const isInvestment = await investmentUtillFunctions.checkIfInvestment(result._id)
-    console.log(isInvestment)
-    if(!isInvestment)
-    {
-      const expencceCalclution = await investmentUtillFunctions.calclutionForExpences(result.ammountSpent)
-    }
-    else{
-      console.log("not investment")
-    }
-  }
-    
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await InvestOrExpensesModel.create([payload], { session });
 
+    if (result[0]._id) 
+    {
+      // console.log(result);
+      const isInvestment = await investmentUtillFunctions.checkIfInvestment(
+        result[0]._id,
+        session,
+      );
+
+      // console.log(isInvestment);
+
+      if (!isInvestment) {
+        const expencceCalclution =
+          await investmentUtillFunctions.calclutionForGrossReduction(
+            result[0].ammountSpent,
+            session,
+          );
+      } 
+      else 
+      {
+        console.log('not investment');
+      }
+    }
+  } catch (err: any) {
+    console.log('error in createInvestOrExpaces');
+    throw Error(err.message || 'error in createInvestOrExpaces');
+  }
 };
 
 const fidAllIvestmetAndExpences = async () => {
@@ -29,17 +44,18 @@ const fidAllIvestmetAndExpences = async () => {
   return result;
 };
 
-const findSingleIvestmetAndExpences = async (investOrExpece_Id: string,id: string,) => {
+const findSingleIvestmetAndExpences = async (
+  investOrExpece_Id: string,
+  id: string,
+) => {
   const IvestmetAndExpences = await InvestOrExpensesModel.findOne({
     _id: new mongoose.Types.ObjectId(investOrExpece_Id),
   });
 
-  const findMember = await memberModel.findOne({id:id})
+  const findMember = await memberModel.findOne({ id: id });
 
-
-  console.log(IvestmetAndExpences,findMember);
+  console.log(IvestmetAndExpences, findMember);
 };
-
 
 export const investOrExpencesServeces = {
   createInvestOrExpaces,
