@@ -2,10 +2,13 @@ import { z } from 'zod';
 
 // Zod Schema for Investment Cycle
 const InvestmentCycleIputZodValSchema = z.object({
-  cyclename: z.string().min(1, 'Cycle name is required'),
-  cycleType: z.enum(['reinvest', 'profit', 'loss']),
-  ammount: z.number().positive('Amount must be a positive number'),
-  proofImg: z.string().optional(),
+  _id: z.string(),
+  cycleInput: z.object({
+    cycleDetail: z.string(),
+    cycleType: z.enum(["investmentReturn", "reInvest"]),
+    amount: z.number().min(0, "Amount must be a positive number"),
+    proofImg: z.string().url("Proof image must be a valid URL"),
+  }),
 });
 
 // Zod Schema for Investment or Expenses

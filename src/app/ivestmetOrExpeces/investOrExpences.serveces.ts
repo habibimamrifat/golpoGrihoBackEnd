@@ -1,43 +1,64 @@
 import mongoose from 'mongoose';
-import { TIvestOrExpennces } from './investOrExpence.interface';
+import { TIvestmentCycleIput, TIvestOrExpennces } from './investOrExpence.interface';
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import memberModel from '../members/member.model';
 import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { stringify } from 'querystring';
 
+
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const result = await InvestOrExpensesModel.create([payload], { session });
 
-    if (result[0]._id) 
-    {
-      // console.log(result);
-      const isInvestment = await investmentUtillFunctions.checkIfInvestment(
-        result[0]._id,
+    const isInGrossTotalBalanceLimit =
+      await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
+        payload.ammountSpent,
         session,
       );
 
-      // console.log(isInvestment);
+    if (isInGrossTotalBalanceLimit.success) {
+      const result = await InvestOrExpensesModel.create([payload], { session });
 
-      if (!isInvestment) {
+      if (result[0]._id) {
         const expencceCalclution =
-          await investmentUtillFunctions.calclutionForGrossReduction(
+          await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
             result[0].ammountSpent,
+            "reduction",
             session,
           );
-      } 
-      else 
-      {
-        console.log('not investment');
+
+        await session.commitTransaction();
+        await session.endSession();
+        return result;
+      } else {
+        throw Error(`creating a Investment or Expences was not Successfull`);
       }
+    } else {
+      throw Error(`${isInGrossTotalBalanceLimit.message}`);
     }
   } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
     console.log('error in createInvestOrExpaces');
     throw Error(err.message || 'error in createInvestOrExpaces');
   }
 };
+
+const giveAInputInInvestmentCycle =async (payload: TIvestmentCycleIput)=>{
+  const session = await mongoose.startSession()
+  try{
+    // const isInvestment = await investmentUtillFunctions.checkIfInvestment()
+
+  }
+  catch(err:any)
+  {
+    await session.abortTransaction()
+    await session.endSession()
+    console.log("something went wrong in giveAInputInInvestmentCycle")
+    throw Error(err.message || "something went wrong in giveAInputInInvestmentCycle")
+  }
+}
 
 const fidAllIvestmetAndExpences = async () => {
   const result = await InvestOrExpensesModel.find();
@@ -61,4 +82,5 @@ export const investOrExpencesServeces = {
   createInvestOrExpaces,
   fidAllIvestmetAndExpences,
   findSingleIvestmetAndExpences,
+  giveAInputInInvestmentCycle
 };

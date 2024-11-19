@@ -6,14 +6,29 @@ import {
 
 // Define the Investment Cycle Schema
 const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
-  cyclename: { type: String, required: true },
-  cycleType: {
-    type: String,
-    enum: ['reinvest', 'profit', 'loss'],
+  _id: {
+    type: String, // Assuming _id is a string, per your type
     required: true,
   },
-  ammount: { type: Number, required: true },
-  proofImg: { type: String, required: false },
+  cycleInput: {
+    cycleDetail: {
+      type: String,
+      required: true,
+    },
+    cycleType: {
+      type: String,
+      enum: ["investmentReturn", "reInvest"],
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    proofImg: {
+      type: String,
+      required: true,
+    },
+  },
 });
 
 // Define the Main Schema for Investment or Expenses
@@ -29,7 +44,7 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
   ammountSpent: { type: Number, required: true },
   profitGenareted:{type:Number ,default:0},
   madeLoss:{type:Number,default:0},
-  
+  isDiscontinued:{type:Boolean,default:false},
   investmentCycle: {
     type: [InvestmentCycleSchema],
     default:[]

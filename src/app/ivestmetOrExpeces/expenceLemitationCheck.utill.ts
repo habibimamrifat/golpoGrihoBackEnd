@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { ClientSession } from 'mongoose';
 import { BannerMOdel } from '../banner/banner.model';
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
@@ -6,9 +6,12 @@ import { BannerServeces } from '../banner/banner.servicces';
 
 const expenceBeyondTotalCurrentBalanceCheck = async (
   expenceAmmount: number,
+  session?: ClientSession,
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    const bannerData = await BannerMOdel.findOne();
+    const bannerData = session
+      ? await BannerMOdel.findOne().session(session)
+      : await BannerMOdel.findOne();
 
     if (bannerData && typeof bannerData.grossTotalBalance === 'number') {
       if (bannerData.grossTotalBalance >= expenceAmmount) {
@@ -75,17 +78,11 @@ const checkIfInvestment = async (
   }
 };
 
-const calcluateOfAsingleInstallment = async (investment_id: string) => {
-  const isInvestment = await checkIfInvestment(investment_id);
-  if (isInvestment) {
-    const calculate = await InvestOrExpensesModel.aggregate([
-      { $match: { _id: investment_id } },
-    ]);
-  }
-};
+const calcluateOfASingleInstallment = async (investment_id: string) => {};
 
-const calclutionForGrossReduction = async (
+const calclutionForGrossReductionOrAddition = async (
   amountSpent: number,
+  nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
   try {
@@ -107,8 +104,13 @@ const calclutionForGrossReduction = async (
 
     allMemberShareDetail.forEach((eachShareDetail) => {
       const grossPersonalBalanceUpdated =
-        eachShareDetail.grossPersonalBalance -
-        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+        nature === 'reduction'
+          ? eachShareDetail.grossPersonalBalance -
+            expensePerHead * eachShareDetail.numberOfShareWonedPersonally
+          : nature === 'addition'
+            ? eachShareDetail.grossPersonalBalance +
+              expensePerHead * eachShareDetail.numberOfShareWonedPersonally
+            : 0;
       // console.log(grossPersonalBalanceUpdated);
 
       updateArr.push({
@@ -146,6 +148,6 @@ const calclutionForGrossReduction = async (
 export const investmentUtillFunctions = {
   expenceBeyondTotalCurrentBalanceCheck,
   checkIfInvestment,
-  calcluateOfAsingleInstallment,
-  calclutionForGrossReduction,
+  calcluateOfASingleInstallment,
+  calclutionForGrossReductionOrAddition,
 };

@@ -15,6 +15,19 @@ const createInvestOrExpaces = asyncCatch(async (req, res) => {
   });
 });
 
+const giveAInputInInvestmentCycle =asyncCatch(async (req, res) => {
+  const payload = req.body;
+  const { adminOrVPOrPId } = req.params;
+  console.log(payload, adminOrVPOrPId);
+  const result = await investOrExpencesServeces.giveAInputInInvestmentCycle(payload);
+  responseHandeler(res, {
+    success: true,
+    status: 200,
+    message: 'new expence or invesment Crated',
+    data: result,
+  });
+})
+
 const fidAllIvestmetAndExpences = asyncCatch(async (req, res) => {
   const result = await investOrExpencesServeces.fidAllIvestmetAndExpences();
   responseHandeler(res, {
@@ -43,4 +56,5 @@ export const investOrExpacesController = {
   createInvestOrExpaces,
   fidAllIvestmetAndExpences,
   findSingleIvestmetAndExpences,
+  giveAInputInInvestmentCycle
 };
