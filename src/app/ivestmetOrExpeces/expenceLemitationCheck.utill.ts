@@ -98,6 +98,8 @@ const calcluateOfASingleInstallment = async (
   payload: TIvestmentCycleIput,
   session?: ClientSession,
 ) => {
+
+
   const isDisCOntinued = session
     ? await InvestOrExpensesModel.findOne({
         id: payload.id,
@@ -117,9 +119,39 @@ const calcluateOfASingleInstallment = async (
 
   const updateInvestmentCycle = session ? await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true,session}):await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true})
 
-  console.log(updateInvestmentCycle)
+  // console.log(updateInvestmentCycle)
 
+  const aggregate =[
+    {$match:{id:id}},
+    {$unwind:"$investmentCycle"},
+    { 
+      $group: {
+        _id: "$investmentCycle.cycleType", 
+        total: { $sum: "$investmentCycle.amount" }
+      }
+    }
+  ]
 
+  const analisisExpences = session? await InvestOrExpensesModel.aggregate(aggregate).session(session):await InvestOrExpensesModel.aggregate(aggregate)
+
+  console.log(analisisExpences)
+
+  let investmentTotal = 0;
+  let reInvestTotal = 0;
+  let investmentReturnTotal = 0;
+
+  // Sum up the totals
+  analisisExpences.forEach(item => {
+    if (item._id === 'investment') investmentTotal += item.total;
+    if (item._id === 'reInvest') reInvestTotal += item.total;
+    if (item._id === 'investmentReturn') investmentReturnTotal += item.total;
+  });
+
+  // Calculate the net amount
+  const netAmount = investmentReturnTotal - (investmentTotal + reInvestTotal);
+
+  console.log(netAmount)
+ 
 };
 
 const calclutionForGrossReductionOrAddition = async (
