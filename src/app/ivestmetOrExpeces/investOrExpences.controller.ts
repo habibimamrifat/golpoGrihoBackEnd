@@ -23,7 +23,7 @@ const giveAInputInInvestmentCycle =asyncCatch(async (req, res) => {
   responseHandeler(res, {
     success: true,
     status: 200,
-    message: 'new expence or invesment Crated',
+    message: 'Added to Investment Cycle',
     data: result,
   });
 })

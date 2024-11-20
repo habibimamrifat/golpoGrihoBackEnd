@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Zod Schema for Investment Cycle
 const InvestmentCycleIputZodValSchema = z.object({
-  _id: z.string(),
+  id: z.string(),
   cycleInput: z.object({
     cycleDetail: z.string(),
     cycleType: z.enum(["investmentReturn", "reInvest"]),

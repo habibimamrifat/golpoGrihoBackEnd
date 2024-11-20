@@ -1,14 +1,15 @@
 export type TIvestmentCycleIput = {
-  _id:string
+  id:string
   cycleInput:{
-    cycleDetail: string;
+  cycleDetail: string;
   cycleType: "investmentReturn"|"reInvest";
-  ammount: number;
+  amount: number;
   proofImg:string;
   }
 };
 
 export type TIvestOrExpennces = {
+  id:string;
   motiveName: string;
   expenceImg?: string;
   ExpencesType: 'investment' | 'expence';

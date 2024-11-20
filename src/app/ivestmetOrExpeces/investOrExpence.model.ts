@@ -6,7 +6,7 @@ import {
 
 // Define the Investment Cycle Schema
 const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
-  _id: {
+  id: {
     type: String, // Assuming _id is a string, per your type
     required: true,
   },
@@ -33,6 +33,7 @@ const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
 
 // Define the Main Schema for Investment or Expenses
 const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
+  id:{ type: String, required: true },
   motiveName: { type: String, required: true },
   expenceImg: { type: String, required: false },
   

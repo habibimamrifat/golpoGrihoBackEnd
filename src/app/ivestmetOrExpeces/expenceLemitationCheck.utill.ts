@@ -3,6 +3,34 @@ import { BannerMOdel } from '../banner/banner.model';
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerServeces } from '../banner/banner.servicces';
+import { TIvestmentCycleIput } from './investOrExpence.interface';
+
+const findLastexpenceOrInvestment = async (session: ClientSession) => {
+  const lastRegisteredId = await InvestOrExpensesModel.findOne({}, { id: 1 })
+    .sort({ createdAt: -1 })
+    .session(session); // Attach the session to the query
+
+  return lastRegisteredId?.id.slice(3) || undefined;
+};
+
+const expenceOrInvestmentIdGeneretor = async (
+  pattern: string,
+  session: ClientSession,
+) => {
+  const currentId =
+    (await findLastexpenceOrInvestment(session)) || (0).toString();
+
+  // Increment and pad the ID
+  let convertedId = (Number(currentId) + 1).toString().padStart(4, '0');
+
+  // Construct the final ID
+  convertedId = `${pattern.slice(0, 3)}${convertedId}`;
+
+  console.log(convertedId);
+  return convertedId;
+};
+
+// ......................id generator up ................
 
 const expenceBeyondTotalCurrentBalanceCheck = async (
   expenceAmmount: number,
@@ -41,29 +69,17 @@ const expenceBeyondTotalCurrentBalanceCheck = async (
 };
 
 const checkIfInvestment = async (
-  investment_id: string | mongoose.Types.ObjectId,
+  investmentId: string,
   session?: mongoose.ClientSession,
 ): Promise<boolean> => {
   try {
-    // Ensure `_id` is a string
-    const _id =
-      typeof investment_id === 'object' &&
-      investment_id instanceof mongoose.Types.ObjectId
-        ? investment_id.toHexString()
-        : investment_id;
-
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(_id)) {
-      throw new Error('Invalid investment ID');
-    }
-
     // Find the investment document
     const findInvestment = session
       ? await InvestOrExpensesModel.findOne({
-          _id: new mongoose.Types.ObjectId(_id),
+          id: investmentId,
         }).session(session)
       : await InvestOrExpensesModel.findOne({
-          _id: new mongoose.Types.ObjectId(_id),
+          id: investmentId,
         });
 
     if (!findInvestment) {
@@ -78,13 +94,37 @@ const checkIfInvestment = async (
   }
 };
 
-const calcluateOfASingleInstallment = async (investment_id: string) => {};
+const calcluateOfASingleInstallment = async (
+  payload: TIvestmentCycleIput,
+  session?: ClientSession,
+) => {
+  const isDisCOntinued = session
+    ? await InvestOrExpensesModel.findOne({
+        id: payload.id,
+        isDiscontinued: false,
+      }).session(session)
+    : await InvestOrExpensesModel.findOne({
+        id: payload.id,
+        isDiscontinued: false,
+      });
+  if (!isDisCOntinued) {
+    console.log('this Investment Is Discontinued');
+    throw Error('this Investment Is Discontinued');
+  }
+
+  const cycleInput = payload.cycleInput
+
+
+  const addToInvestmentCycle = 
+  
+};
 
 const calclutionForGrossReductionOrAddition = async (
   amountSpent: number,
   nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
+  console.log('problem', amountSpent, nature);
   try {
     const bannerData = session
       ? await BannerMOdel.findOne({}).session(session)
@@ -103,14 +143,16 @@ const calclutionForGrossReductionOrAddition = async (
     const updateArr: { id: string; grossPersonalBalanceUpdated: number }[] = [];
 
     allMemberShareDetail.forEach((eachShareDetail) => {
-      const grossPersonalBalanceUpdated =
-        nature === 'reduction'
-          ? eachShareDetail.grossPersonalBalance -
-            expensePerHead * eachShareDetail.numberOfShareWonedPersonally
-          : nature === 'addition'
-            ? eachShareDetail.grossPersonalBalance +
-              expensePerHead * eachShareDetail.numberOfShareWonedPersonally
-            : 0;
+      let grossPersonalBalanceUpdated = 0;
+      if (nature === 'reduction') {
+        grossPersonalBalanceUpdated =
+          eachShareDetail.grossPersonalBalance -
+          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+      } else if (nature === 'addition') {
+        grossPersonalBalanceUpdated =
+          eachShareDetail.grossPersonalBalance +
+          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+      }
       // console.log(grossPersonalBalanceUpdated);
 
       updateArr.push({
@@ -146,6 +188,7 @@ const calclutionForGrossReductionOrAddition = async (
 };
 
 export const investmentUtillFunctions = {
+  expenceOrInvestmentIdGeneretor,
   expenceBeyondTotalCurrentBalanceCheck,
   checkIfInvestment,
   calcluateOfASingleInstallment,
