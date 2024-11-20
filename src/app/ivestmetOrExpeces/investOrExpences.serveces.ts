@@ -69,11 +69,10 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
       session,
     );
     if (isInvestment) {
-      const investment = payload.cycleInput;
-      if (investment.cycleType === 'investmentReturn') {
+      if (payload.cycleType === 'investmentReturn') {
         const grossAddition =
           await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
-            investment.amount,
+            payload.amount,
             'addition',
             session,
         );
@@ -87,8 +86,8 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
         await investmentUtillFunctions.calcluateOfASingleInstallment (payload,session)
       } 
 
-      else if (investment.cycleType === 'reInvest') {
-        const investmentLimitCheck =await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(investment.amount,session);
+      else if (payload.cycleType === 'reInvest') {
+        const investmentLimitCheck =await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(payload.amount,session);
         if (!investmentLimitCheck.success)
         {
           console.log('something went wrong in calcluting grossAddition ');
@@ -96,14 +95,15 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
         }
 
         const grossReduction =await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
-        investment.amount,'reduction',session);
+        payload.amount,'reduction',session);
         if (!grossReduction) 
         {
         console.log('something went wrong in calcluting grossReduction ');
         throw Error('something went wrong in calcluting grossReduction');
         } 
         // add investment logic
-        await investmentUtillFunctions.calcluateOfASingleInstallment (payload,session)
+        const result = await investmentUtillFunctions.calcluateOfASingleInstallment (payload,session)
+        console.log(result)
       }
 
       await session.commitTransaction();

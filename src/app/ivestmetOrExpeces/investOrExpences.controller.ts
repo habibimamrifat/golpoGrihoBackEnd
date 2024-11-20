@@ -18,7 +18,7 @@ const createInvestOrExpaces = asyncCatch(async (req, res) => {
 const giveAInputInInvestmentCycle =asyncCatch(async (req, res) => {
   const payload = req.body;
   const { adminOrVPOrPId } = req.params;
-  console.log(payload, adminOrVPOrPId);
+  
   const result = await investOrExpencesServeces.giveAInputInInvestmentCycle(payload);
   responseHandeler(res, {
     success: true,

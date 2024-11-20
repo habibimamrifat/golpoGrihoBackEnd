@@ -1,11 +1,9 @@
 export type TIvestmentCycleIput = {
-  id:string
-  cycleInput:{
+  id:string;
   cycleDetail: string;
   cycleType: "investmentReturn"|"reInvest";
   amount: number;
   proofImg:string;
-  }
 };
 
 export type TIvestOrExpennces = {
@@ -17,5 +15,5 @@ export type TIvestOrExpennces = {
   profitGenareted:number;
   madeLoss:number;
   isDiscontinued:boolean;
-  investmentCycle?: TIvestmentCycleIput[];
+  investmentCycle: TIvestmentCycleIput[];
 };

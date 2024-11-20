@@ -144,7 +144,7 @@ const updateBannerGrossTotalBalance = async (
     const grossToTalBalance = session
       ? await ShareDetailModel.aggregate([query]).session(session)
       : await ShareDetailModel.aggregate([query]);
-    console.log('yooo i ammm', grossToTalBalance);
+    // console.log('yooo i ammm', grossToTalBalance);
 
     const updateOption = session ? { new: true, session } : { new: true };
     const updateGrossTotalBalanceOfBanner = await BannerMOdel.updateOne(

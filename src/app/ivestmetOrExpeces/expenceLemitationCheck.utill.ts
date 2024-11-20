@@ -107,16 +107,19 @@ const calcluateOfASingleInstallment = async (
         id: payload.id,
         isDiscontinued: false,
       });
+
   if (!isDisCOntinued) {
     console.log('this Investment Is Discontinued');
     throw Error('this Investment Is Discontinued');
   }
 
-  const cycleInput = payload.cycleInput
+  const {id}=payload
+
+  const updateInvestmentCycle = session ? await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true,session}):await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true})
+
+  console.log(updateInvestmentCycle)
 
 
-  const addToInvestmentCycle = 
-  
 };
 
 const calclutionForGrossReductionOrAddition = async (
@@ -124,7 +127,7 @@ const calclutionForGrossReductionOrAddition = async (
   nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
-  console.log('problem', amountSpent, nature);
+  // console.log('problem', amountSpent, nature);
   try {
     const bannerData = session
       ? await BannerMOdel.findOne({}).session(session)
