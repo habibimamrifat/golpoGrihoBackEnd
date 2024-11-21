@@ -6,6 +6,8 @@ import {
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import memberModel from '../members/member.model';
 import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
+import { BannerMOdel } from '../banner/banner.model';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
@@ -85,9 +87,9 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
 
 const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
   const session = await mongoose.startSession();
- 
-  try {
+  session.startTransaction();
 
+  try {
     const isInvestment = await investmentUtillFunctions.checkIfInvestment(
       payload.id,
     );
@@ -96,63 +98,85 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
       throw Error('cant add input cycle to a Expences, its not investment');
     }
 
-
-    const isDiscontinued= await investmentUtillFunctions.checkIsDisCOntinued(payload.id)
+    const isDiscontinued = await investmentUtillFunctions.checkIsDisCOntinued(
+      payload.id,
+    );
     if (isDiscontinued) {
       console.log('this Investment Is Discontinued');
       throw Error('this Investment Is Discontinued');
     }
 
-    const updateInvestmentCycle= await investmentUtillFunctions.updateInvestmentCycle(payload)
+    const updateInvestmentCycle =
+      await investmentUtillFunctions.updateInvestmentCycle(payload);
     if (!updateInvestmentCycle) {
       console.log('couldent uppdate Investment cycle');
       throw Error('couldent uppdate Investment cycle');
     }
 
-    const analysisInvestmentTransactionList = await investmentUtillFunctions.analisisInvestmentTransactionList(payload)
-    if(!analysisInvestmentTransactionList)
-    {
-      console.log("couldnt analysis Investment Transaction List")
-      throw Error("couldnt analysis Investment Transaction List")
+    const analysisInvestmentTransactionList =
+      await investmentUtillFunctions.analisisInvestmentTransactionList(payload);
+    if (!analysisInvestmentTransactionList) {
+      console.log('couldnt analysis Investment Transaction List');
+      throw Error('couldnt analysis Investment Transaction List');
     }
-    console.log(analysisInvestmentTransactionList)
-    const {investmentTotal,reInvestTotal,investmentReturnTotal}=analysisInvestmentTransactionList
+    console.log(analysisInvestmentTransactionList);
+    const { investmentTotal, reInvestTotal, investmentReturnTotal } =
+      analysisInvestmentTransactionList;
 
-    // calculation based on analysis of investment cycle list
-    const netOutcome = investmentReturnTotal-(reInvestTotal+investmentTotal)
-    const ammountSpent = reInvestTotal+investmentTotal
+    // calculation based on analysis of investment cycle list PROFITGENNARATED or MADELOSS
+    const netOutcome =
+      investmentReturnTotal - (reInvestTotal + investmentTotal);
+    const ammountSpent = reInvestTotal + investmentTotal;
 
-
-    const updateGrossOutcomeOfaInvestment = await investmentUtillFunctions.updateGrossOutcomeOfaInvestment(payload.id,netOutcome,ammountSpent)
-    if(!updateGrossOutcomeOfaInvestment)
-    {
-      console.log("couldnt exacute updateGrossOutcomeOfa Investment")
-      throw Error("couldnt exacute updateGrossOutcomeOfa Investment")
+    const updateGrossOutcomeOfaInvestment =
+      await investmentUtillFunctions.updateGrossOutcomeOfaInvestment(
+        payload.id,
+        netOutcome,
+        ammountSpent,
+      );
+    if (!updateGrossOutcomeOfaInvestment) {
+      console.log('couldnt exacute updateGrossOutcomeOfa Investment');
+      throw Error('couldnt exacute updateGrossOutcomeOfa Investment');
     }
 
     // only optional part of investment cycle
-    session.startTransaction();
-    if(payload.cycleType === "reInvest")
-    {
-      const destrybuteProfiteOrLossToAll = await investmentUtillFunctions.calclutionForGrossReductionOrAddition(payload.amount,'reduction',session)
-    }
-    else
-    {
-      const nature = netOutcome>0 ? 'addition':'reduction'
-      const destrybuteProfiteOrLossToAll = await investmentUtillFunctions.calclutionForGrossReductionOrAddition(netOutcome,nature,session)
+
+    if (payload.cycleType === 'reInvest') {
+      const destrybuteProfiteOrLossToAll =
+        await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
+          payload.amount,
+          'reduction',
+          session,
+        );
+    } else {
+      const destrybuteProfiteOrLossToAll =
+        await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
+          netOutcome,
+          'addition',
+          session,
+        );
     }
 
     // commit the changes
     await session.commitTransaction();
-  } 
-  catch (err: any) {
+    return updateGrossOutcomeOfaInvestment;
+  } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    console.log('something went wrong in giveAInputInInvestmentCycle');
-    throw Error(
-      err.message || 'something went wrong in giveAInputInInvestmentCycle',
-    );
+    throw {
+      success: false,
+      message: err.message || 'An unknown error occurred.',
+    };
   }
+};
+
+const disContinueANInvestment = async (investmentId: string) => {
+  const result = await InvestOrExpensesModel.findOneAndUpdate(
+    { id: investmentId },
+    { isDiscontinued: true },
+    { new: true },
+  );
+  return result;
 };
 
 const fidAllIvestmetAndExpences = async () => {
@@ -164,13 +188,19 @@ const findSingleIvestmetAndExpences = async (
   investOrExpeceId: string,
   id: string,
 ) => {
-  const IvestmetAndExpences = await InvestOrExpensesModel.findOne({
-    id: investOrExpeceId,
-  });
+  const findInvestmetOrExpences = await InvestOrExpensesModel.findOne({id:investOrExpeceId});
+  const findMember = await ShareDetailModel.findOne({ id: id });
+  const findBannerData= await BannerMOdel.findOne()
 
-  const findMember = await memberModel.findOne({ id: id });
+  console.log(findInvestmetOrExpences, findMember,findBannerData);
 
-  console.log(IvestmetAndExpences, findMember);
+  const status = findInvestmetOrExpences?
+  findInvestmetOrExpences?.profitGenareted > 0
+    ? "In Profit"
+    : findInvestmetOrExpences?.profitGenareted === 0 && findInvestmetOrExpences?.madeLoss ===0 ?"Nutral" : "In Loss" :null
+
+
+
 };
 
 export const investOrExpencesServeces = {
@@ -178,4 +208,5 @@ export const investOrExpencesServeces = {
   fidAllIvestmetAndExpences,
   findSingleIvestmetAndExpences,
   giveAInputInInvestmentCycle,
+  disContinueANInvestment,
 };

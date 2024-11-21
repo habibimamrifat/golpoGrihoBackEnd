@@ -10,9 +10,11 @@ const ShareDetailSchema = new Schema<TShareDetail>({
     totalPersonalprofit: { type: Number, required: true, default:0 },
     state:{
       type:String,
-      enum:["Profitable","In Loss","Nutral"],
+      enum:["In Profitable","In Loss","Nutral"],
       default:"Nutral"
     },
+    inDebt:{type:Boolean,default:false},
+    debtAmmount:{type:Number,default:0},
     isDelited:{
       type:Boolean,
       default:false

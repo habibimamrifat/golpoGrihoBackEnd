@@ -105,10 +105,10 @@ const checkIsDisCOntinued = async (id: string, session?: ClientSession) => {
         isDiscontinued: true,
       });
 
-  if (isDiscontinued) {
-    console.log('this Investment Is Discontinued');
-    throw Error('this Investment Is Discontinued');
-  }
+  // if (isDiscontinued) {
+  //   console.log('this Investment Is Discontinued');
+  //   throw Error('this Investment Is Discontinued');
+  // }
 
   return isDiscontinued;
 };
@@ -183,8 +183,6 @@ const analisisInvestmentTransactionList = async (
   };
 };
 
-
-
 const updateGrossOutcomeOfaInvestment = async (
   id:string,
   netOutcome:number,
@@ -215,6 +213,8 @@ const updateGrossOutcomeOfaInvestment = async (
   return updateGrossOutcomeOfaTransaction
 };
 
+
+
 const calclutionForGrossReductionOrAddition = async (
   amount: number,
   nature: 'reduction' | 'addition',
@@ -236,24 +236,41 @@ const calclutionForGrossReductionOrAddition = async (
       ? await ShareDetailModel.find().session(session)
       : await ShareDetailModel.find();
 
-    const updateArr: { id: string; grossPersonalBalanceUpdated: number }[] = [];
+    const updateArr: { id: string; grossPersonalBalanceUpdated: number; totalPersonalprofitUpdated:number;stateUpdated:string,inDebtUpdate:boolean,debtAmmountUpdate:number }[] = [];
 
     allMemberShareDetail.forEach((eachShareDetail) => {
       let grossPersonalBalanceUpdated = 0;
+      
+
       if (nature === 'reduction') {
         grossPersonalBalanceUpdated =
           eachShareDetail.grossPersonalBalance -
-          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
-      } else if (nature === 'addition') {
+          expensePerHead * eachShareDetail.numberOfShareWonedPersonally; 
+      } 
+      else if (nature === 'addition') 
+      {
         grossPersonalBalanceUpdated =
           eachShareDetail.grossPersonalBalance +
           expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
       }
+
+      let totalPersonalprofitUppdate =0;
+      totalPersonalprofitUppdate = eachShareDetail.grossPersonalBalance-eachShareDetail.totalPersonalIstallmetAmmout
       // console.log(grossPersonalBalanceUpdated);
+
+      const satateUpdate = grossPersonalBalanceUpdated < eachShareDetail.totalPersonalIstallmetAmmout  ? "In Loss" :grossPersonalBalanceUpdated ==eachShareDetail.totalPersonalIstallmetAmmout? "In Profitable" : "Nutral"
+
+      const inDebtUpdate = grossPersonalBalanceUpdated >=0 ? false :true
+
+      const debtAmmountUpdate= inDebtUpdate ? totalPersonalprofitUppdate :0
 
       updateArr.push({
         id: eachShareDetail.id,
         grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
+        totalPersonalprofitUpdated: totalPersonalprofitUppdate,
+        stateUpdated:satateUpdate,
+        inDebtUpdate:inDebtUpdate,
+        debtAmmountUpdate:debtAmmountUpdate
       });
     });
 
@@ -264,7 +281,13 @@ const calclutionForGrossReductionOrAddition = async (
         const updateOption = session ? { new: true, session } : { new: true };
         return await ShareDetailModel.findOneAndUpdate(
           { id: eachupdate.id },
-          { grossPersonalBalance: eachupdate.grossPersonalBalanceUpdated },
+          { 
+            grossPersonalBalance: eachupdate.grossPersonalBalanceUpdated,
+            totalPersonalprofit:eachupdate.totalPersonalprofitUpdated,
+            state:eachupdate.stateUpdated,
+            inDebt:eachupdate.inDebtUpdate,
+            debtAmmount:eachupdate.debtAmmountUpdate
+          },
           updateOption,
         );
       },

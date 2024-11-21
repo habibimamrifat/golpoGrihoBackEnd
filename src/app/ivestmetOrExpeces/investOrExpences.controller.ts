@@ -17,9 +17,21 @@ const createInvestOrExpaces = asyncCatch(async (req, res) => {
 
 const giveAInputInInvestmentCycle =asyncCatch(async (req, res) => {
   const payload = req.body;
-  const { adminOrVPOrPId } = req.params;
+  // const { adminOrVPOrPId } = req.params;
   
   const result = await investOrExpencesServeces.giveAInputInInvestmentCycle(payload);
+  responseHandeler(res, {
+    success: true,
+    status: 200,
+    message: 'Added to Investment Cycle',
+    data: result,
+  });
+})
+
+const disContinueANInvestment =asyncCatch(async (req, res) => {
+  const { investmentId } = req.params;
+  
+  const result = await investOrExpencesServeces.disContinueANInvestment(investmentId);
   responseHandeler(res, {
     success: true,
     status: 200,
@@ -39,9 +51,9 @@ const fidAllIvestmetAndExpences = asyncCatch(async (req, res) => {
 });
 
 const findSingleIvestmetAndExpences = asyncCatch(async (req, res) => {
-  const { investOrExpennces_id, memberId }=req.params;
+  const { investOrExpenncesId, memberId }=req.params;
   const result = await investOrExpencesServeces.findSingleIvestmetAndExpences(
-    investOrExpennces_id,
+    investOrExpenncesId,
     memberId,
   );
   responseHandeler(res, {
@@ -56,5 +68,6 @@ export const investOrExpacesController = {
   createInvestOrExpaces,
   fidAllIvestmetAndExpences,
   findSingleIvestmetAndExpences,
-  giveAInputInInvestmentCycle
+  giveAInputInInvestmentCycle,
+  disContinueANInvestment
 };

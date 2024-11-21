@@ -9,9 +9,11 @@ investOrExpenncesRouts.post("/createInvestOrExpaces/:adminOrVPOrPId",admiOrPrece
 
 investOrExpenncesRouts.patch("/giveAInputInInvestmentCycle/:adminOrVPOrPId",admiOrPrecedentOrVpValidatr,validator(InvestmentCycleIputZodValSchema),investOrExpacesController.giveAInputInInvestmentCycle)
 
+investOrExpenncesRouts.patch("/disContinueANInvestment/:adminOrVPOrPId/:investmentId",admiOrPrecedentOrVpValidatr,investOrExpacesController.disContinueANInvestment)
+
 investOrExpenncesRouts.get("/fidAllIvestmetAndExpences",investOrExpacesController.fidAllIvestmetAndExpences)
 
-investOrExpenncesRouts.get("/findSingleIvestmetOrExpences/:investOrExpennces_id/:memberId",investOrExpacesController.findSingleIvestmetAndExpences)
+investOrExpenncesRouts.get("/findSingleIvestmetOrExpences/:investOrExpenncesId/:memberId",investOrExpacesController.findSingleIvestmetAndExpences)
 
 
 export default investOrExpenncesRouts;

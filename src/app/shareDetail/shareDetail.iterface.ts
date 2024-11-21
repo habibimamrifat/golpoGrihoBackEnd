@@ -5,6 +5,8 @@ export type TShareDetail={
     totalPersonalIstallmetAmmout:number;
     grossPersonalBalance:number;
     totalPersonalprofit:number;
-    state:"Profitable"|"In Loss"|"Nutral"
+    state:"In Profitable"|"In Loss"|"Nutral"
+    inDebt:boolean
+    debtAmmount:Number
     isDelited:boolean
 }
