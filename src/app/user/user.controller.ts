@@ -47,6 +47,19 @@ const logOutUser = asyncCatch(
   },
 );
 
+const resetPassword = asyncCatch(
+  async (req, res, next) => {
+    const { email,newPassword} = req.params;
+
+    const result = await UserServices.resetPassword(email,newPassword);
+    res.status(200).json({
+      success: true,
+      message: 'password changed',
+      body: result,
+    });
+  },
+);
+
 export const UserController = {
-  createMember,logInUser,logOutUser
+  createMember,logInUser,logOutUser,resetPassword
 };

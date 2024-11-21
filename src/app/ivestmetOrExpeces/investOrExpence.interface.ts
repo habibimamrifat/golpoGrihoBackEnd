@@ -6,6 +6,13 @@ export type TIvestmentCycleIput = {
   proofImg:string;
 };
 
+export type TContributionDetail = {
+  id: string; 
+  accuriedShare: number; 
+  contribution: number; 
+  contributionType: string; 
+};
+
 export type TIvestOrExpennces = {
   id:string;
   motiveName: string;
@@ -16,4 +23,5 @@ export type TIvestOrExpennces = {
   madeLoss:number;
   isDiscontinued:boolean;
   investmentCycle: TIvestmentCycleIput[];
+  contributionList:TContributionDetail[];
 };

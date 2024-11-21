@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import {
+  TContributionDetail,
   TIvestmentCycleIput,
   TIvestOrExpennces,
 } from './investOrExpence.interface';
@@ -31,6 +32,25 @@ const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
   timestamps: true, // Automatically add createdAt and updatedAt fields
 });
 
+const ContributionDetailSchema = new Schema<TContributionDetail>({
+  id: {
+    type: String,
+    required: true,
+  },
+  accuriedShare: {
+    type: Number,
+    required: true,
+  },
+  contribution: {
+    type: Number,
+    required: true,
+  },
+  contributionType: {
+    type: String,
+    required: true,
+  },
+});
+
 // Define the Main Schema for Investment or Expenses
 const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
   id: { type: String, required: true },
@@ -50,6 +70,10 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
     type: [InvestmentCycleSchema],
     default: [],
   },
+  contributionList:{type:[ContributionDetailSchema], default:[]}
+},
+{
+  timestamps:true
 });
 
 export const InvestOrExpensesModel = model(

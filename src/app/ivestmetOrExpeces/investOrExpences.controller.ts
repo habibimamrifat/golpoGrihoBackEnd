@@ -51,10 +51,9 @@ const fidAllIvestmetAndExpences = asyncCatch(async (req, res) => {
 });
 
 const findSingleIvestmetAndExpences = asyncCatch(async (req, res) => {
-  const { investOrExpenncesId, memberId }=req.params;
+  const { investOrExpenncesId }=req.params;
   const result = await investOrExpencesServeces.findSingleIvestmetAndExpences(
-    investOrExpenncesId,
-    memberId,
+    investOrExpenncesId
   );
   responseHandeler(res, {
     success: true,

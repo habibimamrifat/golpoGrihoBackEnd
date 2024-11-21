@@ -8,6 +8,7 @@ import memberModel from '../members/member.model';
 import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerMOdel } from '../banner/banner.model';
+import investOrExpenncesRouts from './ivestOrExpence.routs';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
@@ -15,19 +16,23 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
     session.startTransaction();
 
     const isInGrossTotalBalanceLimit =
-      await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
-        payload.ammountSpent,
-        session,
-      );
+    await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
+    payload.ammountSpent,
+    session,
+    );
 
     if (isInGrossTotalBalanceLimit.success) {
       const string = payload.ExpencesType.slice(0, 3);
+
       const idGenarated =
         await investmentUtillFunctions.expenceOrInvestmentIdGeneretor(
-          `${string}`,
-          session,
-        );
+          `${string}`
+      );
+
+      console.log(idGenarated)
+
       if (idGenarated) {
+
         payload.id = idGenarated;
         const result = await InvestOrExpensesModel.create([payload], {
           session,
@@ -56,6 +61,30 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           }
         }
 
+
+        if(payload.ExpencesType === 'expence')
+        {
+          const makeADefaultAtjusmentForExpence =
+            await InvestOrExpensesModel.findOneAndUpdate(
+              { _id: result[0]._id },
+              {
+                isDiscontinued:true,  
+              },
+            ).session(session);
+
+          if (!makeADefaultAtjusmentForExpence) {
+            console.log('have problem make ADefault Atjusment For Expence');
+            throw Error('have problem make ADefault Atjusment For Expence');
+          }
+
+        }
+
+        const updateContributionList= await investmentUtillFunctions.updateContributionListForInvestmentOrExpance(result[0].id, result[0].ammountSpent,result[0].ExpencesType,session)
+        if (!updateContributionList) {
+          console.log('have problem update Contribution List');
+          throw Error('have problem update Contribution List');
+        }
+
         if (result[0]._id) {
           const expencceCalclution =
             await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
@@ -67,13 +96,16 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           await session.commitTransaction();
           await session.endSession();
           return result;
-        } else {
+        } 
+        else {
           throw Error(`creating a Investment or Expences was not Successfull`);
         }
       } else {
         console.log('something went wrong in idGeneretor');
         throw Error('something went wrong in idGeneretor');
       }
+
+
     } else {
       throw Error(`${isInGrossTotalBalanceLimit.message}`);
     }
@@ -139,6 +171,14 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
       throw Error('couldnt exacute updateGrossOutcomeOfa Investment');
     }
 
+    const nature = netOutcome>=0 ? "profit" : "loss"
+    const updateContributionList = await investmentUtillFunctions.updateContributionListForInvestmentOrExpance(payload.id,netOutcome,nature,)
+    if(!updateContributionList)
+    {
+      console.log("error in updateContributionList")
+      throw Error ("error in updateContributionList")
+    }
+
     // only optional part of investment cycle
 
     if (payload.cycleType === 'reInvest') {
@@ -185,22 +225,10 @@ const fidAllIvestmetAndExpences = async () => {
 };
 
 const findSingleIvestmetAndExpences = async (
-  investOrExpeceId: string,
-  id: string,
+  investOrExpeceId: string
 ) => {
-  const findInvestmetOrExpences = await InvestOrExpensesModel.findOne({id:investOrExpeceId});
-  const findMember = await ShareDetailModel.findOne({ id: id });
-  const findBannerData= await BannerMOdel.findOne()
-
-  console.log(findInvestmetOrExpences, findMember,findBannerData);
-
-  const status = findInvestmetOrExpences?
-  findInvestmetOrExpences?.profitGenareted > 0
-    ? "In Profit"
-    : findInvestmetOrExpences?.profitGenareted === 0 && findInvestmetOrExpences?.madeLoss ===0 ?"Nutral" : "In Loss" :null
-
-
-
+  const result = await InvestOrExpensesModel.findOne({id:investOrExpeceId});
+  return result
 };
 
 export const investOrExpencesServeces = {

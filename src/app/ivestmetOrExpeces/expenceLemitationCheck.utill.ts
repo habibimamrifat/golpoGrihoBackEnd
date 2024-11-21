@@ -3,28 +3,30 @@ import { BannerMOdel } from '../banner/banner.model';
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerServeces } from '../banner/banner.servicces';
-import { TIvestmentCycleIput } from './investOrExpence.interface';
+import {
+  TContributionDetail,
+  TIvestmentCycleIput,
+} from './investOrExpence.interface';
 
-const findLastexpenceOrInvestment = async (session: ClientSession) => {
+const findLastexpenceOrInvestment = async () => {
   const lastRegisteredId = await InvestOrExpensesModel.findOne({}, { id: 1 })
     .sort({ createdAt: -1 })
-    .session(session); // Attach the session to the query
 
   return lastRegisteredId?.id.slice(3) || undefined;
 };
 
 const expenceOrInvestmentIdGeneretor = async (
   pattern: string,
-  session: ClientSession,
 ) => {
-  const currentId =
-    (await findLastexpenceOrInvestment(session)) || (0).toString();
+  
+  const currentId =await findLastexpenceOrInvestment() || (0).toString();
+  console.log("cccc",currentId)
 
   // Increment and pad the ID
   let convertedId = (Number(currentId) + 1).toString().padStart(4, '0');
 
   // Construct the final ID
-  convertedId = `${pattern.slice(0, 3)}${convertedId}`;
+  convertedId = `${pattern}${convertedId}`;
 
   console.log(convertedId);
   return convertedId;
@@ -160,10 +162,9 @@ const analisisInvestmentTransactionList = async (
 
   console.log(analisisExpences);
 
-  if(!analisisExpences)
-  {
-    console.log("analisisExpences",analisisExpences)
-    throw Error("coudnt find analisisExpences")
+  if (!analisisExpences) {
+    console.log('analisisExpences', analisisExpences);
+    throw Error('coudnt find analisisExpences');
   }
 
   let investmentTotal = 0;
@@ -184,36 +185,39 @@ const analisisInvestmentTransactionList = async (
 };
 
 const updateGrossOutcomeOfaInvestment = async (
-  id:string,
-  netOutcome:number,
-  ammountSpent:number,
+  id: string,
+  netOutcome: number,
+  ammountSpent: number,
   session?: ClientSession,
 ) => {
+  const updateOption =
+    netOutcome >= 0
+      ? {
+          ammountSpent: ammountSpent,
+          profitGenareted: netOutcome,
+          madeLoss: 0,
+        }
+      : {
+          ammountSpent: ammountSpent,
+          profitGenareted: 0,
+          madeLoss: netOutcome,
+        };
 
-  const updateOption= netOutcome>=0 ?
-  {
-    ammountSpent:ammountSpent,
-    profitGenareted:netOutcome,
-    madeLoss:0
-  }:
-  {
-    ammountSpent:ammountSpent,
-    profitGenareted:0,
-    madeLoss:netOutcome,
+  const updateGrossOutcomeOfaTransaction = session
+    ? await InvestOrExpensesModel.findOneAndUpdate({ id: id }, updateOption, {
+        new: true,
+        session,
+      })
+    : await InvestOrExpensesModel.findOneAndUpdate({ id: id }, updateOption, {
+        new: true,
+      });
+
+  if (!updateGrossOutcomeOfaTransaction) {
+    console.log('couldnt exacute updateGrossOutcomeOfaTransaction');
+    throw Error('couldnt exacute updateGrossOutcomeOfaTransaction');
   }
-
-  const updateGrossOutcomeOfaTransaction =session ? await InvestOrExpensesModel.findOneAndUpdate({id:id},updateOption,{new:true,session}):await InvestOrExpensesModel.findOneAndUpdate({id:id},updateOption,{new:true})
-
-
-  if(!updateGrossOutcomeOfaTransaction)
-  {
-    console.log("couldnt exacute updateGrossOutcomeOfaTransaction")
-    throw Error("couldnt exacute updateGrossOutcomeOfaTransaction")
-  }
-  return updateGrossOutcomeOfaTransaction
+  return updateGrossOutcomeOfaTransaction;
 };
-
-
 
 const calclutionForGrossReductionOrAddition = async (
   amount: number,
@@ -236,41 +240,54 @@ const calclutionForGrossReductionOrAddition = async (
       ? await ShareDetailModel.find().session(session)
       : await ShareDetailModel.find();
 
-    const updateArr: { id: string; grossPersonalBalanceUpdated: number; totalPersonalprofitUpdated:number;stateUpdated:string,inDebtUpdate:boolean,debtAmmountUpdate:number }[] = [];
+    const updateArr: {
+      id: string;
+      grossPersonalBalanceUpdated: number;
+      totalPersonalprofitUpdated: number;
+      stateUpdated: string;
+      inDebtUpdate: boolean;
+      debtAmmountUpdate: number;
+    }[] = [];
 
     allMemberShareDetail.forEach((eachShareDetail) => {
       let grossPersonalBalanceUpdated = 0;
-      
 
       if (nature === 'reduction') {
         grossPersonalBalanceUpdated =
           eachShareDetail.grossPersonalBalance -
-          expensePerHead * eachShareDetail.numberOfShareWonedPersonally; 
-      } 
-      else if (nature === 'addition') 
-      {
+          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+      } else if (nature === 'addition') {
         grossPersonalBalanceUpdated =
           eachShareDetail.grossPersonalBalance +
           expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
       }
 
-      let totalPersonalprofitUppdate =0;
-      totalPersonalprofitUppdate = eachShareDetail.grossPersonalBalance-eachShareDetail.totalPersonalIstallmetAmmout
+      let totalPersonalprofitUppdate = 0;
+      totalPersonalprofitUppdate =
+        eachShareDetail.grossPersonalBalance -
+        eachShareDetail.totalPersonalIstallmetAmmout;
       // console.log(grossPersonalBalanceUpdated);
 
-      const satateUpdate = grossPersonalBalanceUpdated < eachShareDetail.totalPersonalIstallmetAmmout  ? "In Loss" :grossPersonalBalanceUpdated ==eachShareDetail.totalPersonalIstallmetAmmout? "In Profitable" : "Nutral"
+      const satateUpdate =
+        grossPersonalBalanceUpdated <
+        eachShareDetail.totalPersonalIstallmetAmmout
+          ? 'In Loss'
+          : grossPersonalBalanceUpdated ==
+              eachShareDetail.totalPersonalIstallmetAmmout
+            ? 'In Profitable'
+            : 'Nutral';
 
-      const inDebtUpdate = grossPersonalBalanceUpdated >=0 ? false :true
+      const inDebtUpdate = grossPersonalBalanceUpdated >= 0 ? false : true;
 
-      const debtAmmountUpdate= inDebtUpdate ? totalPersonalprofitUppdate :0
+      const debtAmmountUpdate = inDebtUpdate ? totalPersonalprofitUppdate : 0;
 
       updateArr.push({
         id: eachShareDetail.id,
         grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
         totalPersonalprofitUpdated: totalPersonalprofitUppdate,
-        stateUpdated:satateUpdate,
-        inDebtUpdate:inDebtUpdate,
-        debtAmmountUpdate:debtAmmountUpdate
+        stateUpdated: satateUpdate,
+        inDebtUpdate: inDebtUpdate,
+        debtAmmountUpdate: debtAmmountUpdate,
       });
     });
 
@@ -281,12 +298,12 @@ const calclutionForGrossReductionOrAddition = async (
         const updateOption = session ? { new: true, session } : { new: true };
         return await ShareDetailModel.findOneAndUpdate(
           { id: eachupdate.id },
-          { 
+          {
             grossPersonalBalance: eachupdate.grossPersonalBalanceUpdated,
-            totalPersonalprofit:eachupdate.totalPersonalprofitUpdated,
-            state:eachupdate.stateUpdated,
-            inDebt:eachupdate.inDebtUpdate,
-            debtAmmount:eachupdate.debtAmmountUpdate
+            totalPersonalprofit: eachupdate.totalPersonalprofitUpdated,
+            state: eachupdate.stateUpdated,
+            inDebt: eachupdate.inDebtUpdate,
+            debtAmmount: eachupdate.debtAmmountUpdate,
           },
           updateOption,
         );
@@ -306,6 +323,68 @@ const calclutionForGrossReductionOrAddition = async (
   }
 };
 
+const updateContributionListForInvestmentOrExpance = async (
+  investOrExpenceId: string,
+  amount: number,
+  nature: 'profit' | 'loss' | 'investment' | 'expence',
+  session?: ClientSession,
+) => {
+
+  // console.log("here we areeeeeeeeeee",investOrExpenceId, amount, nature)
+
+  const bannerData = session
+    ? await BannerMOdel.findOne({}).session(session)
+    : await BannerMOdel.findOne({});
+
+  if (!bannerData) {
+    throw new Error('Banner data not found');
+  }
+
+  const expensePerHead = amount / bannerData.totalNumberOfShare;
+
+  const allMemberShareDetail = session
+    ? await ShareDetailModel.find().session(session)
+    : await ShareDetailModel.find();
+
+  const updatedContributionList: TContributionDetail[] = [];
+
+  const updateMemberContributionList = allMemberShareDetail.map(
+    (eachMemberShareDetail) => {
+      const accuriedShare = eachMemberShareDetail.numberOfShareWonedPersonally;
+      const contribution = expensePerHead * accuriedShare;
+
+      const contributionObject = {
+        id: eachMemberShareDetail.id,
+        accuriedShare: accuriedShare,
+        contribution: contribution,
+        contributionType: nature,
+      };
+
+      updatedContributionList.push(contributionObject);
+      // console.log(contributionObject)
+    },
+  );
+
+  const updateContributionListInDb = session
+    ? await InvestOrExpensesModel.findOneAndUpdate(
+        { id: investOrExpenceId }, // Query
+        { $set: { contributionList: updatedContributionList } }, // Update
+        { new: true, session }, // Options
+      )
+    : await InvestOrExpensesModel.findOneAndUpdate(
+        { id: investOrExpenceId }, // Query
+        { $set: { contributionList: updatedContributionList } }, // Update
+        { new: true }, // Options
+      );
+
+  // console.log(updateContributionListInDb);
+  if(updateContributionListInDb)
+  {
+    return true;
+  }
+  
+};
+
 export const investmentUtillFunctions = {
   expenceOrInvestmentIdGeneretor,
   expenceBeyondTotalCurrentBalanceCheck,
@@ -314,5 +393,6 @@ export const investmentUtillFunctions = {
   calclutionForGrossReductionOrAddition,
   checkIsDisCOntinued,
   updateInvestmentCycle,
-  analisisInvestmentTransactionList
+  analisisInvestmentTransactionList,
+  updateContributionListForInvestmentOrExpance,
 };

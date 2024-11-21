@@ -13,7 +13,7 @@ investOrExpenncesRouts.patch("/disContinueANInvestment/:adminOrVPOrPId/:investme
 
 investOrExpenncesRouts.get("/fidAllIvestmetAndExpences",investOrExpacesController.fidAllIvestmetAndExpences)
 
-investOrExpenncesRouts.get("/findSingleIvestmetOrExpences/:investOrExpenncesId/:memberId",investOrExpacesController.findSingleIvestmetAndExpences)
+investOrExpenncesRouts.get("/findSingleIvestmetOrExpences/:investOrExpenncesId",investOrExpacesController.findSingleIvestmetAndExpences)
 
 
 export default investOrExpenncesRouts;
