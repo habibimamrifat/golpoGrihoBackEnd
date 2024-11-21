@@ -11,7 +11,7 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    
+
     const isInGrossTotalBalanceLimit =
       await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
         payload.ammountSpent,
@@ -33,29 +33,26 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
 
         if (payload.ExpencesType === 'investment') {
           const makeADefaultInvestment =
-          await InvestOrExpensesModel.findOneAndUpdate(
-            { _id: result[0]._id },
-            {
-              $push: {
-                investmentCycle: {
-                  id: result[0].id,
-                  cycleDetail: result[0].motiveName,
-                  cycleType: "investment",
-                  amount: result[0].ammountSpent,
-                  proofImg: result[0].expenceImg,
+            await InvestOrExpensesModel.findOneAndUpdate(
+              { _id: result[0]._id },
+              {
+                $push: {
+                  investmentCycle: {
+                    id: result[0].id,
+                    cycleDetail: result[0].motiveName,
+                    cycleType: 'investment',
+                    amount: result[0].ammountSpent,
+                    proofImg: result[0].expenceImg,
+                  },
                 },
               },
-            },
-          ).session(session);
+            ).session(session);
 
-          if(!makeADefaultInvestment)
-          {
-            console.log("have problem making default investment")
-            throw Error("have problem making default investment")
+          if (!makeADefaultInvestment) {
+            console.log('have problem making default investment');
+            throw Error('have problem making default investment');
           }
         }
-
-        
 
         if (result[0]._id) {
           const expencceCalclution =
@@ -88,75 +85,67 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
 
 const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
   const session = await mongoose.startSession();
+ 
   try {
-    session.startTransaction();
+
     const isInvestment = await investmentUtillFunctions.checkIfInvestment(
       payload.id,
-      session,
     );
-
-    if (isInvestment) {
-
-      if (payload.cycleType === 'investmentReturn') {
-        const grossAddition =
-          await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
-            payload.amount,
-            'addition',
-            session,
-          );
-        if (!grossAddition) {
-          console.log('something went wrong in calcluting grossAddition ');
-          throw Error('something went wrong in calcluting grossAddition');
-        }
-
-        // implementing investment logic
-        const result =
-          await investmentUtillFunctions.calcluateOfASingleInstallment(
-            payload,
-            session,
-          );
-          return result  
-      } 
-      
-      else if (payload.cycleType === 'reInvest') {
-        const investmentLimitCheck =
-          await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
-            payload.amount,
-            session,
-          );
-        if (!investmentLimitCheck.success) {
-          console.log('something went wrong in calcluting grossAddition ');
-          throw Error('something went wrong in calcluting grossAddition');
-        }
-
-        const grossReduction =
-          await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
-            payload.amount,
-            'reduction',
-            session,
-          );
-        if (!grossReduction) {
-          console.log('something went wrong in calcluting grossReduction ');
-          throw Error('something went wrong in calcluting grossReduction');
-        }
-        // add investment logic
-        const result =
-          await investmentUtillFunctions.calcluateOfASingleInstallment(
-            payload,
-            session,
-          );
-        // console.log(result)
-        return result
-      }
-      
-      await session.commitTransaction();
-      
-
-    } else {
+    if (!isInvestment) {
       console.log('cant add input cycle to a Expences, its not investment');
       throw Error('cant add input cycle to a Expences, its not investment');
     }
-  } catch (err: any) {
+
+
+    const isDiscontinued= await investmentUtillFunctions.checkIsDisCOntinued(payload.id)
+    if (isDiscontinued) {
+      console.log('this Investment Is Discontinued');
+      throw Error('this Investment Is Discontinued');
+    }
+
+    const updateInvestmentCycle= await investmentUtillFunctions.updateInvestmentCycle(payload)
+    if (!updateInvestmentCycle) {
+      console.log('couldent uppdate Investment cycle');
+      throw Error('couldent uppdate Investment cycle');
+    }
+
+    const analysisInvestmentTransactionList = await investmentUtillFunctions.analisisInvestmentTransactionList(payload)
+    if(!analysisInvestmentTransactionList)
+    {
+      console.log("couldnt analysis Investment Transaction List")
+      throw Error("couldnt analysis Investment Transaction List")
+    }
+    console.log(analysisInvestmentTransactionList)
+    const {investmentTotal,reInvestTotal,investmentReturnTotal}=analysisInvestmentTransactionList
+
+    // calculation based on analysis of investment cycle list
+    const netOutcome = investmentReturnTotal-(reInvestTotal+investmentTotal)
+    const ammountSpent = reInvestTotal+investmentTotal
+
+
+    const updateGrossOutcomeOfaInvestment = await investmentUtillFunctions.updateGrossOutcomeOfaInvestment(payload.id,netOutcome,ammountSpent)
+    if(!updateGrossOutcomeOfaInvestment)
+    {
+      console.log("couldnt exacute updateGrossOutcomeOfa Investment")
+      throw Error("couldnt exacute updateGrossOutcomeOfa Investment")
+    }
+
+    // only optional part of investment cycle
+    session.startTransaction();
+    if(payload.cycleType === "reInvest")
+    {
+      const destrybuteProfiteOrLossToAll = await investmentUtillFunctions.calclutionForGrossReductionOrAddition(payload.amount,'reduction',session)
+    }
+    else
+    {
+      const nature = netOutcome>0 ? 'addition':'reduction'
+      const destrybuteProfiteOrLossToAll = await investmentUtillFunctions.calclutionForGrossReductionOrAddition(netOutcome,nature,session)
+    }
+
+    // commit the changes
+    await session.commitTransaction();
+  } 
+  catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
     console.log('something went wrong in giveAInputInInvestmentCycle');

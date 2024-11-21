@@ -94,72 +94,133 @@ const checkIfInvestment = async (
   }
 };
 
-const calcluateOfASingleInstallment = async (
-  payload: TIvestmentCycleIput,
-  session?: ClientSession,
-) => {
-
-
-  const isDisCOntinued = session
+const checkIsDisCOntinued = async (id: string, session?: ClientSession) => {
+  const isDiscontinued = session
     ? await InvestOrExpensesModel.findOne({
-        id: payload.id,
-        isDiscontinued: false,
+        id: id,
+        isDiscontinued: true,
       }).session(session)
     : await InvestOrExpensesModel.findOne({
-        id: payload.id,
-        isDiscontinued: false,
+        id: id,
+        isDiscontinued: true,
       });
 
-  if (!isDisCOntinued) {
+  if (isDiscontinued) {
     console.log('this Investment Is Discontinued');
     throw Error('this Investment Is Discontinued');
   }
 
-  const {id}=payload
+  return isDiscontinued;
+};
 
-  const updateInvestmentCycle = session ? await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true,session}):await InvestOrExpensesModel.findOneAndUpdate({id:id},{$push:{investmentCycle:payload}},{new:true})
+const updateInvestmentCycle = async (
+  payload: TIvestmentCycleIput,
+  session?: ClientSession,
+) => {
+  const { id } = payload;
+  const updateInvestmentCycle = session
+    ? await InvestOrExpensesModel.findOneAndUpdate(
+        { id: id },
+        { $push: { investmentCycle: payload } },
+        { new: true, session },
+      )
+    : await InvestOrExpensesModel.findOneAndUpdate(
+        { id: id },
+        { $push: { investmentCycle: payload } },
+        { new: true },
+      );
 
-  // console.log(updateInvestmentCycle)
+  if (!updateInvestmentCycle) {
+    console.log('couldent uppdate Investment cycle');
+    throw Error('couldent uppdate Investment cycle');
+  }
 
-  const aggregate =[
-    {$match:{id:id}},
-    {$unwind:"$investmentCycle"},
-    { 
+  return updateInvestmentCycle;
+};
+
+const analisisInvestmentTransactionList = async (
+  payload: TIvestmentCycleIput,
+  session?: ClientSession,
+) => {
+  const { id } = payload;
+  const aggregate = [
+    { $match: { id: id } },
+    { $unwind: '$investmentCycle' },
+    {
       $group: {
-        _id: "$investmentCycle.cycleType", 
-        total: { $sum: "$investmentCycle.amount" }
-      }
-    }
-  ]
+        _id: '$investmentCycle.cycleType',
+        total: { $sum: '$investmentCycle.amount' },
+      },
+    },
+  ];
 
-  const analisisExpences = session? await InvestOrExpensesModel.aggregate(aggregate).session(session):await InvestOrExpensesModel.aggregate(aggregate)
+  const analisisExpences = session
+    ? await InvestOrExpensesModel.aggregate(aggregate).session(session)
+    : await InvestOrExpensesModel.aggregate(aggregate);
 
-  console.log(analisisExpences)
+  console.log(analisisExpences);
+
+  if(!analisisExpences)
+  {
+    console.log("analisisExpences",analisisExpences)
+    throw Error("coudnt find analisisExpences")
+  }
 
   let investmentTotal = 0;
   let reInvestTotal = 0;
   let investmentReturnTotal = 0;
 
   // Sum up the totals
-  analisisExpences.forEach(item => {
+  analisisExpences.forEach((item) => {
     if (item._id === 'investment') investmentTotal += item.total;
     if (item._id === 'reInvest') reInvestTotal += item.total;
     if (item._id === 'investmentReturn') investmentReturnTotal += item.total;
   });
+  return {
+    investmentTotal: investmentTotal,
+    reInvestTotal: reInvestTotal,
+    investmentReturnTotal: investmentReturnTotal,
+  };
+};
 
-  // Calculate the net amount
-  const netAmount = investmentReturnTotal - (investmentTotal + reInvestTotal);
 
-  console.log(netAmount)
- 
+
+const updateGrossOutcomeOfaInvestment = async (
+  id:string,
+  netOutcome:number,
+  ammountSpent:number,
+  session?: ClientSession,
+) => {
+
+  const updateOption= netOutcome>=0 ?
+  {
+    ammountSpent:ammountSpent,
+    profitGenareted:netOutcome,
+    madeLoss:0
+  }:
+  {
+    ammountSpent:ammountSpent,
+    profitGenareted:0,
+    madeLoss:netOutcome,
+  }
+
+  const updateGrossOutcomeOfaTransaction =session ? await InvestOrExpensesModel.findOneAndUpdate({id:id},updateOption,{new:true,session}):await InvestOrExpensesModel.findOneAndUpdate({id:id},updateOption,{new:true})
+
+
+  if(!updateGrossOutcomeOfaTransaction)
+  {
+    console.log("couldnt exacute updateGrossOutcomeOfaTransaction")
+    throw Error("couldnt exacute updateGrossOutcomeOfaTransaction")
+  }
+  return updateGrossOutcomeOfaTransaction
 };
 
 const calclutionForGrossReductionOrAddition = async (
-  amountSpent: number,
+  amount: number,
   nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
-  // console.log('problem', amountSpent, nature);
+  // console.log('problem', amount, nature);
   try {
     const bannerData = session
       ? await BannerMOdel.findOne({}).session(session)
@@ -169,7 +230,7 @@ const calclutionForGrossReductionOrAddition = async (
       throw new Error('Banner data not found');
     }
 
-    const expensePerHead = amountSpent / bannerData.totalNumberOfShare;
+    const expensePerHead = amount / bannerData.totalNumberOfShare;
 
     const allMemberShareDetail = session
       ? await ShareDetailModel.find().session(session)
@@ -226,6 +287,9 @@ export const investmentUtillFunctions = {
   expenceOrInvestmentIdGeneretor,
   expenceBeyondTotalCurrentBalanceCheck,
   checkIfInvestment,
-  calcluateOfASingleInstallment,
+  updateGrossOutcomeOfaInvestment,
   calclutionForGrossReductionOrAddition,
+  checkIsDisCOntinued,
+  updateInvestmentCycle,
+  analisisInvestmentTransactionList
 };
