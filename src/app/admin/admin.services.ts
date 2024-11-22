@@ -16,7 +16,7 @@ const findAllMember = async () => {
     .populate('user')
     .lean();
 
-  let result: TMember[] = [];
+  const result: TMember[] = [];
 
   allMambers.forEach((eachMember) => {
     const user = eachMember.user as TUser;
@@ -28,7 +28,7 @@ const findAllMember = async () => {
 };
 
 const findAllMemberRequests = async () => {
-  let result: TMember[] = [];
+  const result: TMember[] = [];
   const requestingUser = await UserModel.find({ requestState: 'waiting' });
   const requestedUserPromise = requestingUser.map(async (user) => {
     const member = await memberModel.findOne({ id: user.id }).populate('user');
@@ -49,7 +49,7 @@ const findAllMemberRequests = async () => {
 };
 
 const findPrecedentAndVp = async () => {
-  let result: TMember[] = [];
+  const result: TMember[] = [];
   const users = await UserModel.find({
     role: { $in: ['precident', 'vicePrecident'] },
   });

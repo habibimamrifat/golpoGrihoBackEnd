@@ -227,8 +227,8 @@ const calclutionForGrossReductionOrAddition = async (
   // console.log('problem', amount, nature);
   try {
     const bannerData = session
-      ? await BannerMOdel.findOne({}).session(session)
-      : await BannerMOdel.findOne({});
+    ? await BannerMOdel.findOne({}).session(session)
+    : await BannerMOdel.findOne({});
 
     if (!bannerData) {
       throw new Error('Banner data not found');
@@ -237,8 +237,8 @@ const calclutionForGrossReductionOrAddition = async (
     const expensePerHead = amount / bannerData.totalNumberOfShare;
 
     const allMemberShareDetail = session
-      ? await ShareDetailModel.find().session(session)
-      : await ShareDetailModel.find();
+    ? await ShareDetailModel.find().session(session)
+    : await ShareDetailModel.find();
 
     const updateArr: {
       id: string;
@@ -250,21 +250,22 @@ const calclutionForGrossReductionOrAddition = async (
     }[] = [];
 
     allMemberShareDetail.forEach((eachShareDetail) => {
-      let grossPersonalBalanceUpdated = 0;
+    let grossPersonalBalanceUpdated = 0;
 
       if (nature === 'reduction') {
         grossPersonalBalanceUpdated =
-          eachShareDetail.grossPersonalBalance -
-          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
-      } else if (nature === 'addition') {
+        eachShareDetail.grossPersonalBalance -
+        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+      } 
+      else if (nature === 'addition') {
         grossPersonalBalanceUpdated =
-          eachShareDetail.grossPersonalBalance +
-          expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+        eachShareDetail.grossPersonalBalance +
+        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
       }
 
       let totalPersonalprofitUppdate = 0;
-      totalPersonalprofitUppdate =
-        eachShareDetail.grossPersonalBalance -
+      
+      totalPersonalprofitUppdate =grossPersonalBalanceUpdated -
         eachShareDetail.totalPersonalIstallmetAmmout;
       // console.log(grossPersonalBalanceUpdated);
 
@@ -272,7 +273,7 @@ const calclutionForGrossReductionOrAddition = async (
         grossPersonalBalanceUpdated <
         eachShareDetail.totalPersonalIstallmetAmmout
           ? 'In Loss'
-          : grossPersonalBalanceUpdated ==
+          : grossPersonalBalanceUpdated >=
               eachShareDetail.totalPersonalIstallmetAmmout
             ? 'In Profitable'
             : 'Nutral';

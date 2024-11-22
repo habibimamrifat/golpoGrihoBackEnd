@@ -210,4 +210,5 @@ export const BannerServeces = {
   updateBannerTotalumberOfShare,
   getBanner,
   updateBannerGrossTotalBalance,
+  updateBannerTotalNumberOfInvestment
 };

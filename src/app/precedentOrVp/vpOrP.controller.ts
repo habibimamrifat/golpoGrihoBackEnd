@@ -16,8 +16,8 @@ const findAllWaitingInstallment = asyncCatch(async(req,res)=>{
 
 const approveOrDeclineAnInstallment = asyncCatch(async(req,res)=>{
     const {VpOrPId}= req.params
-    const {id, installmentStatus}= req.body
-    const result =await vpOrPServices.approveOrDeclineAnInstallment(VpOrPId,id,installmentStatus)
+    const {membrId, installmentStatus}= req.body
+    const result =await vpOrPServices.approveOrDeclineAnInstallment(VpOrPId,membrId,installmentStatus)
     responseHandeler(res,
        {
            status:200,

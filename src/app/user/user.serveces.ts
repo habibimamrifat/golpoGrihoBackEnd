@@ -15,7 +15,8 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
 
   const isFirstUser = await UserModel.find();
   if (isFirstUser.length === 0) {
-    (user.role = 'admin'), (user.requestState = 'approved');
+    user.role = 'admin';
+     user.requestState = 'approved';
   }
 
   // Start a session

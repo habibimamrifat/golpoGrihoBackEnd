@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const acceptOrDenyVpOrpSchema = z.object({
-  id: z.string(),
+  membrId: z.string(),
   installmentStatus: z.object({
     status: z.enum(["approved", "denied"]),
     installmentList_id: z.string()

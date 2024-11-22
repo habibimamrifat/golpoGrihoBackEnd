@@ -9,6 +9,7 @@ import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerMOdel } from '../banner/banner.model';
 import investOrExpenncesRouts from './ivestOrExpence.routs';
+import { BannerServeces } from '../banner/banner.servicces';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
@@ -85,6 +86,13 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           throw Error('have problem update Contribution List');
         }
 
+        const updateBannerNumberofInvestment=await BannerServeces.updateBannerTotalNumberOfInvestment()
+        if(!updateBannerNumberofInvestment)
+        {
+          console.log('have problem update Banner Number of Investment');
+          throw Error('have problem update BannerNumber of Investment');
+        }
+
         if (result[0]._id) {
           const expencceCalclution =
             await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
@@ -147,11 +155,14 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
 
     const analysisInvestmentTransactionList =
       await investmentUtillFunctions.analisisInvestmentTransactionList(payload);
-    if (!analysisInvestmentTransactionList) {
+    if 
+    (!analysisInvestmentTransactionList) {
       console.log('couldnt analysis Investment Transaction List');
       throw Error('couldnt analysis Investment Transaction List');
     }
     console.log(analysisInvestmentTransactionList);
+
+
     const { investmentTotal, reInvestTotal, investmentReturnTotal } =
       analysisInvestmentTransactionList;
 
