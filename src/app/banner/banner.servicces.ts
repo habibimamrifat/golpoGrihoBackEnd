@@ -3,7 +3,6 @@ import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { UserModel } from '../user/user.model';
 import { BannerMOdel } from './banner.model';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
-import { query } from 'express';
 import { InvestOrExpensesModel } from '../ivestmetOrExpeces/investOrExpence.model';
 
 const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
@@ -131,35 +130,39 @@ const updateBannerTotalDepositAmount = async (
   }
 };
 
-const updateBannerGrossTotalBalance = async (
-  session?: mongoose.ClientSession,
-) => {
+const updateBannerGrossTotalBalance = async (session?: mongoose.ClientSession) => {
   try {
     const query = {
       $group: {
         _id: null,
-        sumOfAllGrossPersonalBalance: { $sum: '$grossPersonalBalance' },
+        sumOfAllGrossPersonalBalance: {
+          $sum: { $ifNull: ["$grossPersonalBalance", 0] },
+        },
       },
     };
+
+    // Perform aggregation
     const grossToTalBalance = session
       ? await ShareDetailModel.aggregate([query]).session(session)
       : await ShareDetailModel.aggregate([query]);
-    // console.log('yooo i ammm', grossToTalBalance);
 
+    // Safeguard against empty results
+    const sumOfAllGrossPersonalBalance = 
+      grossToTalBalance.length > 0 ? grossToTalBalance[0].sumOfAllGrossPersonalBalance : 0;
+
+    // Update the BannerModel
     const updateOption = session ? { new: true, session } : { new: true };
     const updateGrossTotalBalanceOfBanner = await BannerMOdel.updateOne(
       {},
-      {
-        grossTotalBalance:
-          grossToTalBalance[0].sumOfAllGrossPersonalBalance || 0,
-      },
+      { grossTotalBalance: sumOfAllGrossPersonalBalance },
       updateOption,
     );
 
-    // return updateGrossTotalBalanceOfBanner;
+    // Optionally return result or log it
+    return updateGrossTotalBalanceOfBanner;
   } catch (err) {
     console.log('got problem in updateBannerGrossTotalBalance', err);
-    throw Error('got problem in updateBannerGrossTotalBalance');
+    throw new Error('got problem in updateBannerGrossTotalBalance');
   }
 };
 
