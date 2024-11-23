@@ -20,6 +20,9 @@ const MonthSchema = z.enum([
 const InstallmentZodSchema = z.object({
   year: z.string().min(4, 'Year must have at least 4 characters (e.g., 2023)'), // Assuming year is a 4-character string
   month: MonthSchema,
+  numberOfMonth:z.number().min(1, { message: "Number of months must be at least 1" })
+  .max(12, { message: "Number of months must not exceed 12" })
+  .default(1),
   installmentAmount: z.number().min(1000, 'Deposit amount must be non-negative'),
   status: z.enum(['waiting', 'declined', 'approved']).default('waiting'),
   installmentDate: z.date().optional(),

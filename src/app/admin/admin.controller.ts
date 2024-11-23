@@ -1,6 +1,5 @@
 import asyncCatch from '../../utility/asynncCatch';
 import responseHandeler from '../../utility/responseHandeler';
-
 import { adminServeces } from './admin.services';
 
 const findAllMember = asyncCatch(async (req, res) => {
@@ -80,7 +79,7 @@ const updateAccuiredNumberOfShareOfAMember = asyncCatch(async (req, res) => {
 
 const removePresedentOrVpRole = asyncCatch(async (req, res) => {
   const { VpOrPId } = req.params;
-  console.log(VpOrPId);
+  // console.log(VpOrPId);
 
   const result = await adminServeces.removePresedentOrVpRole(VpOrPId);
   responseHandeler(res, {
@@ -93,7 +92,7 @@ const removePresedentOrVpRole = asyncCatch(async (req, res) => {
 
 const updateValueOfEachShare = asyncCatch(async (req, res) => {
   const { valueOfEachShare } = req.params;
-  console.log(valueOfEachShare);
+  // console.log(valueOfEachShare);
 
   const result = await adminServeces.updateValueOfEachShare(valueOfEachShare);
   responseHandeler(res, {
@@ -106,7 +105,7 @@ const updateValueOfEachShare = asyncCatch(async (req, res) => {
 
 const deleteMember = asyncCatch(async (req, res) => {
   const { memberId } = req.params;
-  console.log(memberId);
+  // console.log(memberId);
 
   const result = await adminServeces.deleteMember(memberId);
   responseHandeler(res, {

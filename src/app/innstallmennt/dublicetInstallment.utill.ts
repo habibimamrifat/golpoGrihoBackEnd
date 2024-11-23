@@ -24,6 +24,7 @@ const dublicetDepositCheck = async (id: string, deposit: TInstallment) => {
 const installmentLOwerLimitCheck = async (
   memberId: string,
   incommingAmmount: number,
+  numberOfMonth:number
 ) => {
   console.log('from check', incommingAmmount);
 
@@ -38,7 +39,7 @@ const installmentLOwerLimitCheck = async (
       if (numberOfAccuredShare) {
         const isInstallmentLowerLimitAccordingToShare =
           installmentLowerLimit.valueOfEachShare *
-          numberOfAccuredShare?.numberOfShareWonedPersonally;
+          numberOfAccuredShare?.numberOfShareWonedPersonally*numberOfMonth;
 
         if (isInstallmentLowerLimitAccordingToShare <= incommingAmmount) 
         {
@@ -54,7 +55,7 @@ const installmentLOwerLimitCheck = async (
         }
         else
         {
-          throw Error("you are trying to pass installment Which is low. according to your accured share")
+          throw Error(`you are trying to pass installment Which is low. according to your accured shareit should me minimum ${isInstallmentLowerLimitAccordingToShare}`)
         }
       }
     }

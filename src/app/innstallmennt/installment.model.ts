@@ -4,6 +4,7 @@ import {
   TInstallmentList,
   TMonth,
 } from './installment.interface';
+import { number } from 'zod';
 
 // Define the TMonth type as an enum for the schema
 const monthEnum: TMonth[] = [
@@ -36,6 +37,12 @@ const InstallmentSchema = new Schema<TInstallment>({
     type: Number,
     required: true,
     min: 1000,
+  },
+  numberOfMonth:{
+    type:Number,
+    default:1,
+    min:1,
+    max:12
   },
   transactionImg: {
     type: String,

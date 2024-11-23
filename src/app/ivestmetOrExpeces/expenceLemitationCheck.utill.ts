@@ -219,31 +219,125 @@ const updateGrossOutcomeOfaInvestment = async (
   return updateGrossOutcomeOfaTransaction;
 };
 
+const findDistrubutionOfSharesOfAnInvestMent = async(investOrExpenceId:string)=>{
+  const query = [
+  {
+    $match: { id: investOrExpenceId }, // Match the document with the specified ID
+  },
+
+  {
+    $facet: {
+      totalShares: [
+        {
+          $unwind: "$destrubutionOfShares", // Deconstruct the destrubutionOfShares array
+        },
+        {
+          $group: {
+            _id: null, // Grouping all documents into a single group
+            totalNumberOfShare: {
+              $sum: "$destrubutionOfShares.numberOfShareOwned", // Sum up the numberOfShareOwned field
+            },
+          },
+        },
+      ],
+      destrubutionOfSharesArray: [
+        {
+          $project: {
+            destrubutionOfShares: 1, // Project only the destrubutionOfShares array
+          },
+        },
+      ],
+    },
+  },
+
+  {
+    $project: {
+      totalNumberOfShare: { $arrayElemAt: ["$totalShares.totalNumberOfShare", 0] },
+      destrubutionOfShares: { $arrayElemAt: ["$destrubutionOfSharesArray.destrubutionOfShares", 0] }
+    },
+  },
+];
+
+const getDestubutionOfShareOfAnInvestmentOrExpences = await InvestOrExpensesModel.aggregate(query)
+
+ console.log("from findDistrubutionOfSharesOfAnInvestMent",getDestubutionOfShareOfAnInvestmentOrExpences)
+
+return getDestubutionOfShareOfAnInvestmentOrExpences
+}
+
+const updateContributionListForInvestmentOrExpance = async (
+  investOrExpenceId: string,
+  amount: number,
+  nature: 'profit' | 'loss' | 'investment' | 'expence',
+  session?: ClientSession,
+) => {
+
+  const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
+  if(findDistrubutionOfShares){
+    console.log("updateContributionListForInvestmentOrExpance",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
+  }
+  
+  const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
+
+  const allMemberShareDetail = session
+  ? await ShareDetailModel.find().session(session)
+  : await ShareDetailModel.find();
+
+  const updatedContributionList: TContributionDetail[] = [];
+
+  const updateMemberContributionList = allMemberShareDetail.map(
+    (eachMemberShareDetail) => {
+
+      const findAccuriedShare = findDistrubutionOfShares[0]?.destrubutionOfShares.find((item:any)=> item.id === eachMemberShareDetail.id)
+
+      const contribution = expensePerHead * findAccuriedShare.numberOfShareOwned;
+
+      const contributionObject = {
+        id: eachMemberShareDetail.id,
+        accuriedShare: findAccuriedShare.numberOfShareOwned,
+        contribution: contribution,
+        contributionType: nature,
+      };
+
+      updatedContributionList.push(contributionObject);
+      // console.log(contributionObject)
+    },
+  );
+
+  const updateContributionListInDb = session
+    ? await InvestOrExpensesModel.findOneAndUpdate(
+        { id: investOrExpenceId }, // Query
+        { $set: { contributionList: updatedContributionList } }, // Update
+        { new: true, session }, // Options
+      )
+    : await InvestOrExpensesModel.findOneAndUpdate(
+        { id: investOrExpenceId }, // Query
+        { $set: { contributionList: updatedContributionList } }, // Update
+        { new: true }, // Options
+      );
+
+  // console.log(updateContributionListInDb);
+  if(updateContributionListInDb)
+  {
+    return true;
+  } 
+};
+
 const calclutionForGrossReductionOrAddition = async (
+  investOrExpenceId:string,
   amount: number,
   nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
-  // console.log('problem', amount, nature);
   try {
-
-    // to find total number of share  only should be used when new expence or investment is created
-
-
-    const bannerData = session
-    ? await BannerMOdel.findOne({}).session(session)
-    : await BannerMOdel.findOne({});
-
-
-    // but for the old expence or investment he number of share must be captured from the each destrubutedshare list which will happen only once
+    const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
+  if(findDistrubutionOfShares){
+    console.log("calclutionForGrossReductionOrAddition",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
+  }
+  
+  const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
 
 
-
-    if (!bannerData) {
-      throw new Error('Banner data not found');
-    }
-
-    const expensePerHead = amount / bannerData.totalNumberOfShare;
 
     const allMemberShareDetail = session
     ? await ShareDetailModel.find().session(session)
@@ -259,17 +353,20 @@ const calclutionForGrossReductionOrAddition = async (
     }[] = [];
 
     allMemberShareDetail.forEach((eachShareDetail) => {
+
+      const findAccuriedShare = findDistrubutionOfShares[0]?.destrubutionOfShares.find((item:any)=> item.id === eachShareDetail.id)
+
     let grossPersonalBalanceUpdated = 0;
 
       if (nature === 'reduction') {
         grossPersonalBalanceUpdated =
         eachShareDetail.grossPersonalBalance -
-        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+        expensePerHead * findAccuriedShare.numberOfShareOwned;
       } 
       else if (nature === 'addition') {
         grossPersonalBalanceUpdated =
         eachShareDetail.grossPersonalBalance +
-        expensePerHead * eachShareDetail.numberOfShareWonedPersonally;
+        expensePerHead * findAccuriedShare.numberOfShareOwned;
       }
 
       let totalPersonalprofitUppdate = 0;
@@ -333,67 +430,8 @@ const calclutionForGrossReductionOrAddition = async (
   }
 };
 
-const updateContributionListForInvestmentOrExpance = async (
-  investOrExpenceId: string,
-  amount: number,
-  nature: 'profit' | 'loss' | 'investment' | 'expence',
-  session?: ClientSession,
-) => {
 
-  // console.log("here we areeeeeeeeeee",investOrExpenceId, amount, nature)
 
-  const bannerData = session
-    ? await BannerMOdel.findOne({}).session(session)
-    : await BannerMOdel.findOne({});
-
-  if (!bannerData) {
-    throw new Error('Banner data not found');
-  }
-
-  const expensePerHead = amount / bannerData.totalNumberOfShare;
-
-  const allMemberShareDetail = session
-  ? await ShareDetailModel.find().session(session)
-  : await ShareDetailModel.find();
-
-  const updatedContributionList: TContributionDetail[] = [];
-
-  const updateMemberContributionList = allMemberShareDetail.map(
-    (eachMemberShareDetail) => {
-      const accuriedShare = eachMemberShareDetail.numberOfShareWonedPersonally;
-      const contribution = expensePerHead * accuriedShare;
-
-      const contributionObject = {
-        id: eachMemberShareDetail.id,
-        accuriedShare: accuriedShare,
-        contribution: contribution,
-        contributionType: nature,
-      };
-
-      updatedContributionList.push(contributionObject);
-      // console.log(contributionObject)
-    },
-  );
-
-  const updateContributionListInDb = session
-    ? await InvestOrExpensesModel.findOneAndUpdate(
-        { id: investOrExpenceId }, // Query
-        { $set: { contributionList: updatedContributionList } }, // Update
-        { new: true, session }, // Options
-      )
-    : await InvestOrExpensesModel.findOneAndUpdate(
-        { id: investOrExpenceId }, // Query
-        { $set: { contributionList: updatedContributionList } }, // Update
-        { new: true }, // Options
-      );
-
-  // console.log(updateContributionListInDb);
-  if(updateContributionListInDb)
-  {
-    return true;
-  }
-  
-};
 
 export const investmentUtillFunctions = {
   expenceOrInvestmentIdGeneretor,

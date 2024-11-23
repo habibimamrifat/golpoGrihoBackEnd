@@ -58,7 +58,7 @@ const DestrubutionOfSharesSchema = new Schema<TDestrubutionOfShares>({
   id: {
     type: String,
     required: true,
-    unique: true, // Ensures each `id` is unique
+    index:false
   },
   numberOfShareOwned: {
     type: Number,
@@ -98,15 +98,41 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
 
 
 InvestOrExpensesSchema.pre("save", async function (next) {
+  console.log("i am being called from pre sasve")
   try {
+
+    const query = [
+      {
+        $lookup: {
+          from: "users", // Name of the collection to join
+          localField: "id", // Field in the current collection
+          foreignField: "id", // Field in the users collection
+          as: "usersDetails", // Alias for the joined documents
+        },
+      },
+      {
+        $unwind: "$usersDetails", // Deconstruct the array from $lookup
+      },
+      {
+        $match: {
+          "usersDetails.requestState": "approved",
+           // Only keep the group with _id "approved"
+           "usersDetails.isDelited":false
+        },
+      },
+    ];
     // Fetch all shares
-    const findAllTheShares = await ShareDetailModel.find();
+    const findAllTheShares = await ShareDetailModel.aggregate(query);
+
+    // console.log("from model", findAllTheShares)
 
     // Prepare the array of distribution of shares
-    const updateDestrubutionOfSharesArrey: TDestrubutionOfShares[] = findAllTheShares.map((eachShare) => ({
+    const updateDestrubutionOfSharesArrey = findAllTheShares.map((eachShare) => ({
       id: eachShare.id,
       numberOfShareOwned: eachShare.numberOfShareWonedPersonally, // Use the correct field name
     }));
+
+    console.log("update Destrubution Of SharesArrey",updateDestrubutionOfSharesArrey)
 
     // Set the destrubutionOfShares property
     const investOrExpence = this 

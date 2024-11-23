@@ -36,6 +36,8 @@ const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
 const updateBannerTotalumberOfShare = async (
   session?: mongoose.ClientSession,
 ) => {
+
+  console.log("i am called from banner update")
   const query = [
     {
       $lookup: {
@@ -49,18 +51,17 @@ const updateBannerTotalumberOfShare = async (
       $unwind: "$usersDetails", // Deconstruct the array from $lookup
     },
     {
-      $group: {
-        _id:"$usersDetails.requestState",
-        totalNumberOfShares: {
-          $sum: 1, // Sum the specific field
-        },
-      },
+      $match:{"usersDetails.requestState":'approved',
+        "usersDetails.isDelited":false
+      }
     },
     {
-      $match: {
-        _id: "approved", // Only keep the group with _id "approved"
-      },
-    },
+      $group:{
+        _id:null,
+        totalNumberOfShares:{$sum:"$numberOfShareWonedPersonally"}
+
+      }
+    }
   ];
 
   try {
@@ -78,6 +79,7 @@ const updateBannerTotalumberOfShare = async (
       { totalNumberOfShare: totalNumberOfShare[0]?.totalNumberOfShares || 0 },
       updateOptions,
     );
+
 
     return updateBannerQuery;
   } catch (err) {

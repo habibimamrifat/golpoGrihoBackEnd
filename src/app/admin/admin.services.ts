@@ -190,7 +190,7 @@ const deleteMember = async (id: string) => {
       success: true,
     };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     session.abortTransaction();
   } finally {
     session.endSession();

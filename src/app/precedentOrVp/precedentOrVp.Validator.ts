@@ -12,7 +12,7 @@ const precedentOrVpValidatr=asyncCatch(async (req, res, next)=>{
     }
     else
     {
-        throw new Error("You dont have asdmin access")
+        throw new Error("You dont have Precident or Vp access")
     }
 })
 export default precedentOrVpValidatr
