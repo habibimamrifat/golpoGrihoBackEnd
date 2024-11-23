@@ -226,9 +226,18 @@ const calclutionForGrossReductionOrAddition = async (
 ) => {
   // console.log('problem', amount, nature);
   try {
+
+    // to find total number of share  only should be used when new expence or investment is created
+
+
     const bannerData = session
     ? await BannerMOdel.findOne({}).session(session)
     : await BannerMOdel.findOne({});
+
+
+    // but for the old expence or investment he number of share must be captured from the each destrubutedshare list which will happen only once
+
+
 
     if (!bannerData) {
       throw new Error('Banner data not found');
@@ -344,8 +353,8 @@ const updateContributionListForInvestmentOrExpance = async (
   const expensePerHead = amount / bannerData.totalNumberOfShare;
 
   const allMemberShareDetail = session
-    ? await ShareDetailModel.find().session(session)
-    : await ShareDetailModel.find();
+  ? await ShareDetailModel.find().session(session)
+  : await ShareDetailModel.find();
 
   const updatedContributionList: TContributionDetail[] = [];
 

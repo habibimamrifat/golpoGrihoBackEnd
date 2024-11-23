@@ -13,6 +13,11 @@ export type TContributionDetail = {
   contributionType: string; 
 };
 
+export type TDestrubutionOfShares={
+id:string,
+numberOfShareOwned:number
+}
+
 export type TIvestOrExpennces = {
   id:string;
   motiveName: string;
@@ -22,6 +27,7 @@ export type TIvestOrExpennces = {
   profitGenareted:number;
   madeLoss:number;
   isDiscontinued:boolean;
+  destrubutionOfShares:TDestrubutionOfShares[]
   investmentCycle: TIvestmentCycleIput[];
   contributionList:TContributionDetail[];
 };

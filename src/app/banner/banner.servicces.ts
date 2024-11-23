@@ -36,28 +36,53 @@ const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
 const updateBannerTotalumberOfShare = async (
   session?: mongoose.ClientSession,
 ) => {
-  const query = {
-    $group: {
-      _id: null,
-      totalNumberOfShares: { $sum: '$numberOfShareWonedPersonally' },
+  const query = [
+    {
+      $lookup: {
+        from: "users", // Name of the collection to join
+        localField: "id", // Field in the current collection
+        foreignField: "id", // Field in the users collection
+        as: "usersDetails", // Alias for the joined documents
+      },
     },
-  };
+    {
+      $unwind: "$usersDetails", // Deconstruct the array from $lookup
+    },
+    {
+      $group: {
+        _id:"$usersDetails.requestState",
+        totalNumberOfShares: {
+          $sum: 1, // Sum the specific field
+        },
+      },
+    },
+    {
+      $match: {
+        _id: "approved", // Only keep the group with _id "approved"
+      },
+    },
+  ];
 
   try {
-    const totalNumberOfShare = session
-      ? await ShareDetailModel.aggregate([query]).session(session)
-      : await ShareDetailModel.aggregate([query]);
+    // Run aggregation query with or without session
+    const totalNumberOfShare = await ShareDetailModel.aggregate(query).session(session || null);
 
+    console.log(totalNumberOfShare)
+
+    // Prepare update options
     const updateOptions = session ? { new: true, session } : { new: true };
 
+    // Update the banner model with the calculated total number of shares
     const updateBannerQuery = await BannerMOdel.updateOne(
       {},
       { totalNumberOfShare: totalNumberOfShare[0]?.totalNumberOfShares || 0 },
       updateOptions,
     );
+
     return updateBannerQuery;
   } catch (err) {
-    console.log(err);
+    console.error("Error updating banner total number of shares:", err);
+    throw err; // Rethrow error for proper error handling by caller
   }
 };
 

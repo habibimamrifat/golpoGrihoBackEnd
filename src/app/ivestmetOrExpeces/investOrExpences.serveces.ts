@@ -4,11 +4,11 @@ import {
   TIvestOrExpennces,
 } from './investOrExpence.interface';
 import { InvestOrExpensesModel } from './investOrExpence.model';
-import memberModel from '../members/member.model';
+// import memberModel from '../members/member.model';
 import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
-import { ShareDetailModel } from '../shareDetail/shareDetail.model';
-import { BannerMOdel } from '../banner/banner.model';
-import investOrExpenncesRouts from './ivestOrExpence.routs';
+// import { ShareDetailModel } from '../shareDetail/shareDetail.model';
+// import { BannerMOdel } from '../banner/banner.model';
+// import investOrExpenncesRouts from './ivestOrExpence.routs';
 import { BannerServeces } from '../banner/banner.servicces';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
@@ -17,9 +17,9 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
     session.startTransaction();
 
     const isInGrossTotalBalanceLimit =
-    await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
-    payload.ammountSpent,
-    session,
+      await investmentUtillFunctions.expenceBeyondTotalCurrentBalanceCheck(
+        payload.ammountSpent,
+        session,
     );
 
     if (isInGrossTotalBalanceLimit.success) {
@@ -30,27 +30,27 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           `${string}`
       );
 
-      console.log(idGenarated)
+      console.log(idGenarated);
 
       if (idGenarated) {
-
         payload.id = idGenarated;
-        const result = await InvestOrExpensesModel.create([payload], {
-          session,
-        });
+
+        const investOrExpense = new InvestOrExpensesModel(payload); // Create an instance of the model
+        investOrExpense.$session(session); // Attach the session
+        const result = await investOrExpense.save(); // Save the instance
 
         if (payload.ExpencesType === 'investment') {
           const makeADefaultInvestment =
             await InvestOrExpensesModel.findOneAndUpdate(
-              { _id: result[0]._id },
+              { _id: result._id },
               {
                 $push: {
                   investmentCycle: {
-                    id: result[0].id,
-                    cycleDetail: result[0].motiveName,
+                    id: result.id,
+                    cycleDetail: result.motiveName,
                     cycleType: 'investment',
-                    amount: result[0].ammountSpent,
-                    proofImg: result[0].expenceImg,
+                    amount: result.ammountSpent,
+                    proofImg: result.expenceImg,
                   },
                 },
               },
@@ -62,14 +62,12 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           }
         }
 
-
-        if(payload.ExpencesType === 'expence')
-        {
+        if (payload.ExpencesType === 'expence') {
           const makeADefaultAtjusmentForExpence =
             await InvestOrExpensesModel.findOneAndUpdate(
-              { _id: result[0]._id },
+              { _id: result._id },
               {
-                isDiscontinued:true,  
+                isDiscontinued: true,
               },
             ).session(session);
 
@@ -77,26 +75,31 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
             console.log('have problem make ADefault Atjusment For Expence');
             throw Error('have problem make ADefault Atjusment For Expence');
           }
-
         }
 
-        const updateContributionList= await investmentUtillFunctions.updateContributionListForInvestmentOrExpance(result[0].id, result[0].ammountSpent,result[0].ExpencesType,session)
+        const updateContributionList = await investmentUtillFunctions.updateContributionListForInvestmentOrExpance(
+          result.id,
+          result.ammountSpent,
+          result.ExpencesType,
+          session
+        );
         if (!updateContributionList) {
           console.log('have problem update Contribution List');
           throw Error('have problem update Contribution List');
         }
 
-        const updateBannerNumberofInvestment=await BannerServeces.updateBannerTotalNumberOfInvestment()
-        if(!updateBannerNumberofInvestment)
-        {
+
+
+        const updateBannerNumberofInvestment = await BannerServeces.updateBannerTotalNumberOfInvestment();
+        if (!updateBannerNumberofInvestment) {
           console.log('have problem update Banner Number of Investment');
           throw Error('have problem update BannerNumber of Investment');
         }
 
-        if (result[0]._id) {
+        if (result._id) {
           const expencceCalclution =
             await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
-              result[0].ammountSpent,
+              result.ammountSpent,
               'reduction',
               session,
             );
@@ -108,12 +111,12 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
         else {
           throw Error(`creating a Investment or Expences was not Successfull`);
         }
+
+        
       } else {
         console.log('something went wrong in idGeneretor');
         throw Error('something went wrong in idGeneretor');
       }
-
-
     } else {
       throw Error(`${isInGrossTotalBalanceLimit.message}`);
     }

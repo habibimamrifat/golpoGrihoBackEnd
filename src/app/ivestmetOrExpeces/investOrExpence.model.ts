@@ -1,9 +1,11 @@
 import { model, Schema } from 'mongoose';
 import {
   TContributionDetail,
+  TDestrubutionOfShares,
   TIvestmentCycleIput,
   TIvestOrExpennces,
 } from './investOrExpence.interface';
+import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 
 // Define the Investment Cycle Schema
 const InvestmentCycleSchema = new Schema<TIvestmentCycleIput>({
@@ -51,6 +53,20 @@ const ContributionDetailSchema = new Schema<TContributionDetail>({
   },
 });
 
+
+const DestrubutionOfSharesSchema = new Schema<TDestrubutionOfShares>({
+  id: {
+    type: String,
+    required: true,
+    unique: true, // Ensures each `id` is unique
+  },
+  numberOfShareOwned: {
+    type: Number,
+    required: true,
+    min: 0, // Ensure the number of shares is non-negative
+  },
+});
+
 // Define the Main Schema for Investment or Expenses
 const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
   id: { type: String, required: true },
@@ -66,6 +82,10 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
   profitGenareted: { type: Number, default: 0 },
   madeLoss: { type: Number, default: 0 },
   isDiscontinued: { type: Boolean, default: false },
+  destrubutionOfShares:{
+    type:[DestrubutionOfSharesSchema],
+    default:[]
+  },
   investmentCycle: {
     type: [InvestmentCycleSchema],
     default: [],
@@ -74,6 +94,28 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
 },
 {
   timestamps:true
+});
+
+
+InvestOrExpensesSchema.pre("save", async function (next) {
+  try {
+    // Fetch all shares
+    const findAllTheShares = await ShareDetailModel.find();
+
+    // Prepare the array of distribution of shares
+    const updateDestrubutionOfSharesArrey: TDestrubutionOfShares[] = findAllTheShares.map((eachShare) => ({
+      id: eachShare.id,
+      numberOfShareOwned: eachShare.numberOfShareWonedPersonally, // Use the correct field name
+    }));
+
+    // Set the destrubutionOfShares property
+    const investOrExpence = this 
+    investOrExpence.destrubutionOfShares = updateDestrubutionOfSharesArrey;
+
+    next();
+  } catch (error:any) {
+    next(error); // Pass the error to Mongoose if something goes wrong
+  }
 });
 
 export const InvestOrExpensesModel = model(
