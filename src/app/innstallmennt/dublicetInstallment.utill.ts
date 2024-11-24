@@ -26,7 +26,7 @@ const installmentLOwerLimitCheck = async (
   incommingAmmount: number,
   numberOfMonth:number
 ) => {
-  console.log('from check', incommingAmmount);
+  // console.log('from check', incommingAmmount);
 
   const installmentLowerLimit = await BannerMOdel.findOne();
   if (installmentLowerLimit) {

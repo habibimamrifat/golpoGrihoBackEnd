@@ -52,7 +52,7 @@ const nominiSchema = new Schema<TNomini>({
 });
 
 const memberSchema = new Schema<TMember>({
-  id: { type: String, required: true },
+  id: { type: String, required: true ,unique:true},
   memberImg: { type: String, required: true },
   name: { type: nameSchema, required: true },
   user: {
@@ -101,24 +101,32 @@ const memberSchema = new Schema<TMember>({
 
 
 memberSchema.pre('save', async function (next) {
-  console.log("yoo")
-  const result = await memberModel.findOne({
-    $or: [
-      { id: this.id },
-      { mob: this.mob },
-      { memberNID: this.memberNID },
-      { 'membersNomini.mob': this.membersNomini.mob },
-      { 'membersNomini.nominiNID': this.membersNomini.nominiNID },
-    ]
-  });
-
-  console.log("result", result)
-
-  if(result)
-  {
-    throw new Error("This user already Exists")
+  // console.log("yoo")
+  try{
+    const result = await memberModel.findOne({
+      $or: [
+        { id: this.id },
+        { mob: this.mob },
+        { memberNID: this.memberNID },
+        { 'membersNomini.mob': this.membersNomini.mob },
+        { 'membersNomini.nominiNID': this.membersNomini.nominiNID },
+      ]
+    });
+  
+    // console.log("result", result)
+  
+    if(result)
+    {
+      throw new Error("This user already Exists")
+    }
+    next()
   }
-  next()
+  catch(err)
+  {
+    throw Error("somethinng went wrong in member model")
+  }
+
+  
 });
 
 const memberModel = model<TMember>('Member', memberSchema);

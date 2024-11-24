@@ -174,7 +174,7 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
       console.log('couldnt analysis Investment Transaction List');
       throw Error('couldnt analysis Investment Transaction List');
     }
-    console.log(analysisInvestmentTransactionList);
+    // console.log(analysisInvestmentTransactionList);
 
 
     const { investmentTotal, reInvestTotal, investmentReturnTotal } =
@@ -218,7 +218,7 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
       const destrybuteProfiteOrLossToAll =
         await investmentUtillFunctions.calclutionForGrossReductionOrAddition(
           payload.id,
-          netOutcome,
+          payload.amount,
           'addition',
           session,
         );

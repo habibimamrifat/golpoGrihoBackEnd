@@ -27,8 +27,8 @@ const updateBannerTotalMember = async (session?: mongoose.ClientSession) => {
     );
 
     return updatedBanner;
-  } catch (err) {
-    console.error('Something went wrong in updateBannerTotalMember:', err);
+  } catch (err:any) {
+    // console.error('Something went wrong in updateBannerTotalMember:', err);
     throw err;
   }
 };
@@ -37,7 +37,7 @@ const updateBannerTotalumberOfShare = async (
   session?: mongoose.ClientSession,
 ) => {
 
-  console.log("i am called from banner update")
+  // console.log("i am called from banner update")
   const query = [
     {
       $lookup: {
@@ -68,7 +68,7 @@ const updateBannerTotalumberOfShare = async (
     // Run aggregation query with or without session
     const totalNumberOfShare = await ShareDetailModel.aggregate(query).session(session || null);
 
-    console.log(totalNumberOfShare)
+    // console.log(totalNumberOfShare)
 
     // Prepare update options
     const updateOptions = session ? { new: true, session } : { new: true };

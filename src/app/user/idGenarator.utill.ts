@@ -9,7 +9,7 @@ const idGearator = async (lastName :string)=>{
     const currennntId =await findLastRegisteredUser() || (0).toString()
     let covertedId  = (Number(currennntId)+1.).toString().padStart(4,"0")
     covertedId = `${lastName.slice(0,3)}${covertedId}`
-    console.log(covertedId)
+    // console.log(covertedId)
     return covertedId
   }
 

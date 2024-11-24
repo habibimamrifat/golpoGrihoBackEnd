@@ -20,7 +20,7 @@ const expenceOrInvestmentIdGeneretor = async (
 ) => {
   
   const currentId =await findLastexpenceOrInvestment() || (0).toString();
-  console.log("cccc",currentId)
+  // console.log("cccc",currentId)
 
   // Increment and pad the ID
   let convertedId = (Number(currentId) + 1).toString().padStart(4, '0');
@@ -28,7 +28,7 @@ const expenceOrInvestmentIdGeneretor = async (
   // Construct the final ID
   convertedId = `${pattern}${convertedId}`;
 
-  console.log(convertedId);
+  // console.log(convertedId);
   return convertedId;
 };
 
@@ -160,7 +160,7 @@ const analisisInvestmentTransactionList = async (
     ? await InvestOrExpensesModel.aggregate(aggregate).session(session)
     : await InvestOrExpensesModel.aggregate(aggregate);
 
-  console.log(analisisExpences);
+  // console.log(analisisExpences);
 
   if (!analisisExpences) {
     console.log('analisisExpences', analisisExpences);
@@ -260,7 +260,7 @@ const findDistrubutionOfSharesOfAnInvestMent = async(investOrExpenceId:string)=>
 
 const getDestubutionOfShareOfAnInvestmentOrExpences = await InvestOrExpensesModel.aggregate(query)
 
- console.log("from findDistrubutionOfSharesOfAnInvestMent",getDestubutionOfShareOfAnInvestmentOrExpences)
+//  console.log("from findDistrubutionOfSharesOfAnInvestMent",getDestubutionOfShareOfAnInvestmentOrExpences)
 
 return getDestubutionOfShareOfAnInvestmentOrExpences
 }
@@ -273,9 +273,9 @@ const updateContributionListForInvestmentOrExpance = async (
 ) => {
 
   const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
-  if(findDistrubutionOfShares){
-    console.log("updateContributionListForInvestmentOrExpance",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
-  }
+  // if(findDistrubutionOfShares){
+  //   console.log("updateContributionListForInvestmentOrExpance",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
+  // }
   
   const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
 
@@ -331,9 +331,9 @@ const calclutionForGrossReductionOrAddition = async (
 ) => {
   try {
     const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
-  if(findDistrubutionOfShares){
-    console.log("calclutionForGrossReductionOrAddition",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
-  }
+  // if(findDistrubutionOfShares){
+  //   console.log("calclutionForGrossReductionOrAddition",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
+  // }
   
   const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
 

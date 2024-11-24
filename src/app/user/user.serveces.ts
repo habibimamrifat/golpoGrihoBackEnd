@@ -13,10 +13,14 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   const id = await idGearator(memberData.name.lastName);
   user.id = id;
 
-  const isFirstUser = await UserModel.find();
-  if (isFirstUser.length === 0) {
-    user.role = 'admin';
-     user.requestState = 'approved';
+  try {
+    const isFirstUser = await UserModel.find();
+    if (isFirstUser.length === 0) {
+      user.role = 'admin';
+      user.requestState = 'approved';
+    }
+  } catch (err) {
+    throw Error('something went wrong in in userController isFirstUser');
   }
 
   // Start a session
@@ -111,7 +115,7 @@ const resetPassword = async (email: string, password: string) => {
       Number(config.Bcrypt_SaltRound),
     );
 
-    console.log(newPassword)
+    // console.log(newPassword);
 
     const updatePassword = await UserModel.findOneAndUpdate(
       { email: email },
@@ -119,13 +123,13 @@ const resetPassword = async (email: string, password: string) => {
       { new: true },
     );
 
-    console.log(updatePassword)
+    // console.log(updatePassword);
 
     if (!updatePassword) {
       throw Error('something went wrong changing password');
     }
 
-    return {passwordChanged:true}
+    return { passwordChanged: true };
   } else {
     throw Error(' the email didnt match');
   }

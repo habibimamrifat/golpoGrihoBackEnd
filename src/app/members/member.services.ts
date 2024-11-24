@@ -10,6 +10,7 @@ const findSingleMember = async (id: string) => {
 };
 
 const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
+  // console.log(id)
   const {
     name,
     membersNomini,
@@ -41,12 +42,18 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
     }
   };
 
+
+
   if (name && Object.keys(name).length) {
     flatenObject('name', name, modifiedUpdatedData);
   }
+
+
   if (membersNomini && Object.keys(membersNomini).length) {
     flatenObject('membersNomini', membersNomini, modifiedUpdatedData);
   }
+
+
   if (memberPermanentAddress && Object.keys(memberPermanentAddress).length) {
     flatenObject(
       'memberPermanentAddress',
@@ -54,6 +61,8 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
       modifiedUpdatedData,
     );
   }
+
+
   if (memberPresentAddress && Object.keys(memberPresentAddress).length) {
     flatenObject(
       'memberPresentAddress',
@@ -61,7 +70,10 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
       modifiedUpdatedData,
     );
   }
-  const result = await memberModel.findByIdAndUpdate(
+
+
+
+  const result = await memberModel.findOneAndUpdate(
     { id: id },
     { modifiedUpdatedData },
     {

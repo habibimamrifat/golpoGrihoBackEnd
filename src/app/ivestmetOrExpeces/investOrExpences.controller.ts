@@ -4,7 +4,7 @@ import { investOrExpencesServeces } from './investOrExpences.serveces';
 
 const createInvestOrExpaces = asyncCatch(async (req, res) => {
   const payload = req.body;
-  const { adminOrVPOrPId } = req.params;
+  // const { adminOrVPOrPId } = req.params;
   // console.log(payload, adminOrVPOrPId);
   const result = await investOrExpencesServeces.createInvestOrExpaces(payload);
   responseHandeler(res, {

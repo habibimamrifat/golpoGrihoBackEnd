@@ -98,7 +98,7 @@ const InvestOrExpensesSchema = new Schema<TIvestOrExpennces>({
 
 
 InvestOrExpensesSchema.pre("save", async function (next) {
-  console.log("i am being called from pre sasve")
+  // console.log("i am being called from pre sasve")
   try {
 
     const query = [
@@ -132,7 +132,7 @@ InvestOrExpensesSchema.pre("save", async function (next) {
       numberOfShareOwned: eachShare.numberOfShareWonedPersonally, // Use the correct field name
     }));
 
-    console.log("update Destrubution Of SharesArrey",updateDestrubutionOfSharesArrey)
+    // console.log("update Destrubution Of SharesArrey",updateDestrubutionOfSharesArrey)
 
     // Set the destrubutionOfShares property
     const investOrExpence = this 
