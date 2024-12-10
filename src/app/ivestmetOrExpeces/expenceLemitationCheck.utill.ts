@@ -9,17 +9,16 @@ import {
 } from './investOrExpence.interface';
 
 const findLastexpenceOrInvestment = async () => {
-  const lastRegisteredId = await InvestOrExpensesModel.findOne({}, { id: 1 })
-    .sort({ createdAt: -1 })
+  const lastRegisteredId = await InvestOrExpensesModel.findOne(
+    {},
+    { id: 1 },
+  ).sort({ createdAt: -1 });
 
   return lastRegisteredId?.id.slice(3) || undefined;
 };
 
-const expenceOrInvestmentIdGeneretor = async (
-  pattern: string,
-) => {
-  
-  const currentId =await findLastexpenceOrInvestment() || (0).toString();
+const expenceOrInvestmentIdGeneretor = async (pattern: string) => {
+  const currentId = (await findLastexpenceOrInvestment()) || (0).toString();
   // console.log("cccc",currentId)
 
   // Increment and pad the ID
@@ -219,51 +218,61 @@ const updateGrossOutcomeOfaInvestment = async (
   return updateGrossOutcomeOfaTransaction;
 };
 
-const findDistrubutionOfSharesOfAnInvestMent = async(investOrExpenceId:string)=>{
+const findDistrubutionOfSharesOfAnInvestMent = async (
+  investOrExpenceId: string,
+) => {
   const query = [
-  {
-    $match: { id: investOrExpenceId }, // Match the document with the specified ID
-  },
+    {
+      $match: { id: investOrExpenceId }, // Match the document with the specified ID
+    },
 
-  {
-    $facet: {
-      totalShares: [
-        {
-          $unwind: "$destrubutionOfShares", // Deconstruct the destrubutionOfShares array
-        },
-        {
-          $group: {
-            _id: null, // Grouping all documents into a single group
-            totalNumberOfShare: {
-              $sum: "$destrubutionOfShares.numberOfShareOwned", // Sum up the numberOfShareOwned field
+    {
+      $facet: {
+        totalShares: [
+          {
+            $unwind: '$destrubutionOfShares', // Deconstruct the destrubutionOfShares array
+          },
+          {
+            $group: {
+              _id: null, // Grouping all documents into a single group
+              totalNumberOfShare: {
+                $sum: '$destrubutionOfShares.numberOfShareOwned', // Sum up the numberOfShareOwned field
+              },
             },
           },
-        },
-      ],
-      destrubutionOfSharesArray: [
-        {
-          $project: {
-            destrubutionOfShares: 1, // Project only the destrubutionOfShares array
+        ],
+        destrubutionOfSharesArray: [
+          {
+            $project: {
+              destrubutionOfShares: 1, // Project only the destrubutionOfShares array
+            },
           },
+        ],
+      },
+    },
+
+    {
+      $project: {
+        totalNumberOfShare: {
+          $arrayElemAt: ['$totalShares.totalNumberOfShare', 0],
         },
-      ],
+        destrubutionOfShares: {
+          $arrayElemAt: ['$destrubutionOfSharesArray.destrubutionOfShares', 0],
+        },
+      },
     },
-  },
+  ];
 
-  {
-    $project: {
-      totalNumberOfShare: { $arrayElemAt: ["$totalShares.totalNumberOfShare", 0] },
-      destrubutionOfShares: { $arrayElemAt: ["$destrubutionOfSharesArray.destrubutionOfShares", 0] }
-    },
-  },
-];
+  const getDestubutionOfShareOfAnInvestmentOrExpences =
+    await InvestOrExpensesModel.aggregate(query);
 
-const getDestubutionOfShareOfAnInvestmentOrExpences = await InvestOrExpensesModel.aggregate(query)
+  // console.log(
+  //   'from findDistrubutionOfSharesOfAnInvestMent',
+  //   getDestubutionOfShareOfAnInvestmentOrExpences,
+  // );
 
-//  console.log("from findDistrubutionOfSharesOfAnInvestMent",getDestubutionOfShareOfAnInvestmentOrExpences)
-
-return getDestubutionOfShareOfAnInvestmentOrExpences
-}
+  return getDestubutionOfShareOfAnInvestmentOrExpences;
+};
 
 const updateContributionListForInvestmentOrExpance = async (
   investOrExpenceId: string,
@@ -271,39 +280,57 @@ const updateContributionListForInvestmentOrExpance = async (
   nature: 'profit' | 'loss' | 'investment' | 'expence',
   session?: ClientSession,
 ) => {
+  let totalNumberOfSharesCombind = 0;
+  let destrubutionOfSharesList: Array<any> = [];
 
-  const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
-  // if(findDistrubutionOfShares){
-  //   console.log("updateContributionListForInvestmentOrExpance",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
-  // }
-  
-  const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
+  // Fetch distribution of shares
+  const findDistrubutionOfShares = await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId);
+  if (!findDistrubutionOfShares || !findDistrubutionOfShares.length) {
+    throw new Error("Distribution of shares not found for the given investment/expense ID");
+  }
 
+  totalNumberOfSharesCombind = findDistrubutionOfShares[0]?.totalNumberOfShare ?? 0;
+  destrubutionOfSharesList = findDistrubutionOfShares[0]?.destrubutionOfShares ?? [];
+
+  if (totalNumberOfSharesCombind === 0 || destrubutionOfSharesList.length === 0) {
+    throw new Error("Invalid distribution data: no shares or share distribution found");
+  }
+
+  // Calculate expense per head
+  const expensePerHead = amount / totalNumberOfSharesCombind;
+
+  // Fetch all member share details
   const allMemberShareDetail = session
-  ? await ShareDetailModel.find().session(session)
-  : await ShareDetailModel.find();
+    ? await ShareDetailModel.find({isDelited:false}).session(session)
+    : await ShareDetailModel.find({isDelited:false});
 
-  const updatedContributionList: TContributionDetail[] = [];
+  if (!allMemberShareDetail || allMemberShareDetail.length === 0) {
+    throw new Error("No member share details found");
+  }
 
-  const updateMemberContributionList = allMemberShareDetail.map(
-    (eachMemberShareDetail) => {
+  // Construct the updated contribution list
+  const updatedContributionList: TContributionDetail[] = allMemberShareDetail.map((eachMemberShareDetail) => {
 
-      const findAccuriedShare = findDistrubutionOfShares[0]?.destrubutionOfShares.find((item:any)=> item.id === eachMemberShareDetail.id)
+    const findAccuriedShare = destrubutionOfSharesList.find(
+      (item: any) => item.id === eachMemberShareDetail.id,
+    );
 
-      const contribution = expensePerHead * findAccuriedShare.numberOfShareOwned;
+    if (!findAccuriedShare) {
+      throw new Error(`No matching share found for member ID: ${eachMemberShareDetail.id}`);
+    }
 
-      const contributionObject = {
-        id: eachMemberShareDetail.id,
-        accuriedShare: findAccuriedShare.numberOfShareOwned,
-        contribution: contribution,
-        contributionType: nature,
-      };
+    const contribution = expensePerHead * findAccuriedShare.numberOfShareOwned;
+    // console.log("here i am ",findAccuriedShare.numberOfShareOwned)
+    return {
+      id: eachMemberShareDetail.id,
+      accuriedShare: findAccuriedShare.numberOfShareOwned,
+      contribution: contribution,
+      contributionType: nature,
+    };
 
-      updatedContributionList.push(contributionObject);
-      // console.log(contributionObject)
-    },
-  );
+  });
 
+  // Update the contribution list in the database
   const updateContributionListInDb = session
     ? await InvestOrExpensesModel.findOneAndUpdate(
         { id: investOrExpenceId }, // Query
@@ -316,121 +343,114 @@ const updateContributionListForInvestmentOrExpance = async (
         { new: true }, // Options
       );
 
-  // console.log(updateContributionListInDb);
-  if(updateContributionListInDb)
-  {
-    return true;
-  } 
+  if (!updateContributionListInDb) {
+    throw new Error("Failed to update contribution list in the database");
+  }
+
+  // console.log("yoo yoo",updateContributionListInDb)
+
+  return true;
 };
 
+
 const calclutionForGrossReductionOrAddition = async (
-  investOrExpenceId:string,
+  investOrExpenceId: string,
   amount: number,
   nature: 'reduction' | 'addition',
   session?: mongoose.ClientSession,
 ) => {
   try {
-    const findDistrubutionOfShares= await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId)
-  // if(findDistrubutionOfShares){
-  //   console.log("calclutionForGrossReductionOrAddition",findDistrubutionOfShares[0]?.totalNumberOfShare,findDistrubutionOfShares[0]?.destrubutionOfShares)
-  // }
-  
-  const expensePerHead = amount / findDistrubutionOfShares[0]?.totalNumberOfShare;
+    const findDistrubutionOfShares = await findDistrubutionOfSharesOfAnInvestMent(investOrExpenceId);
 
+    if (!findDistrubutionOfShares || !findDistrubutionOfShares.length) {
+      throw new Error("Distribution of shares not found for the given investment/expense ID");
+    }
 
+    const totalNumberOfShare = findDistrubutionOfShares[0]?.totalNumberOfShare;
+    const destrubutionOfShares = findDistrubutionOfShares[0]?.destrubutionOfShares;
+
+    if (!totalNumberOfShare || !destrubutionOfShares || destrubutionOfShares.length === 0) {
+      throw new Error("Invalid distribution data: no total shares or share distribution found");
+    }
+
+    const expensePerHead = amount / totalNumberOfShare;
 
     const allMemberShareDetail = session
-    ? await ShareDetailModel.find().session(session)
-    : await ShareDetailModel.find();
+      ? await ShareDetailModel.find({isDelited:false}).session(session)
+      : await ShareDetailModel.find({isDelited:false});
 
-    const updateArr: {
-      id: string;
-      grossPersonalBalanceUpdated: number;
-      totalPersonalprofitUpdated: number;
-      stateUpdated: string;
-      inDebtUpdate: boolean;
-      debtAmmountUpdate: number;
-    }[] = [];
+    if (!allMemberShareDetail || allMemberShareDetail.length === 0) {
+      throw new Error("No member share details found");
+    }
 
-    allMemberShareDetail.forEach((eachShareDetail) => {
+    const updateArr = allMemberShareDetail.map((eachShareDetail) => {
+      const findAccuriedShare = destrubutionOfShares.find(
+        (item: any) => item.id === eachShareDetail.id,
+      );
 
-      const findAccuriedShare = findDistrubutionOfShares[0]?.destrubutionOfShares.find((item:any)=> item.id === eachShareDetail.id)
-
-    let grossPersonalBalanceUpdated = 0;
-
-      if (nature === 'reduction') {
-        grossPersonalBalanceUpdated =
-        eachShareDetail.grossPersonalBalance -
-        expensePerHead * findAccuriedShare.numberOfShareOwned;
-      } 
-      else if (nature === 'addition') {
-        grossPersonalBalanceUpdated =
-        eachShareDetail.grossPersonalBalance +
-        expensePerHead * findAccuriedShare.numberOfShareOwned;
+      if (!findAccuriedShare) {
+        throw new Error(`No matching share found for member ID: ${eachShareDetail.id}`);
       }
 
-      let totalPersonalprofitUppdate = 0;
-      
-      totalPersonalprofitUppdate =grossPersonalBalanceUpdated -
-        eachShareDetail.totalPersonalIstallmetAmmout;
-      // console.log(grossPersonalBalanceUpdated);
+      const contribution = expensePerHead * findAccuriedShare.numberOfShareOwned;
+      let grossPersonalBalanceUpdated = nature === 'reduction'
+        ? eachShareDetail.grossPersonalBalance - contribution
+        : eachShareDetail.grossPersonalBalance + contribution;
 
-      const satateUpdate =
-        grossPersonalBalanceUpdated <
-        eachShareDetail.totalPersonalIstallmetAmmout
+      const totalPersonalProfitUpdated =
+        grossPersonalBalanceUpdated - eachShareDetail.totalPersonalIstallmetAmmout;
+
+      const stateUpdated =
+        grossPersonalBalanceUpdated < eachShareDetail.totalPersonalIstallmetAmmout
           ? 'In Loss'
-          : grossPersonalBalanceUpdated >=
-              eachShareDetail.totalPersonalIstallmetAmmout
-            ? 'In Profitable'
-            : 'Nutral';
+          : grossPersonalBalanceUpdated > eachShareDetail.totalPersonalIstallmetAmmout
+          ? 'In Profit'
+          : 'Neutral';
 
-      const inDebtUpdate = grossPersonalBalanceUpdated >= 0 ? false : true;
+      const inDebtUpdate = grossPersonalBalanceUpdated < 0;
+      const debtAmountUpdate = inDebtUpdate ? Math.abs(totalPersonalProfitUpdated) : 0;
 
-      const debtAmmountUpdate = inDebtUpdate ? totalPersonalprofitUppdate : 0;
-
-      updateArr.push({
+      return {
         id: eachShareDetail.id,
-        grossPersonalBalanceUpdated: grossPersonalBalanceUpdated,
-        totalPersonalprofitUpdated: totalPersonalprofitUppdate,
-        stateUpdated: satateUpdate,
-        inDebtUpdate: inDebtUpdate,
-        debtAmmountUpdate: debtAmmountUpdate,
-      });
+        grossPersonalBalanceUpdated,
+        totalPersonalProfitUpdated,
+        stateUpdated,
+        inDebtUpdate,
+        debtAmountUpdate,
+      };
     });
 
-    // console.log('run map on it ',  updateArr);
+    const updateMembersGrossPersonalBalance = updateArr.map((eachUpdate) => {
+      const updateOptions = session ? { new: true, session } : { new: true };
+      return ShareDetailModel.findOneAndUpdate(
+        { id: eachUpdate.id },
+        {
+          grossPersonalBalance: eachUpdate.grossPersonalBalanceUpdated,
+          totalPersonalProfit: eachUpdate.totalPersonalProfitUpdated,
+          state: eachUpdate.stateUpdated,
+          inDebt: eachUpdate.inDebtUpdate,
+          debtAmount: eachUpdate.debtAmountUpdate,
+        },
+        updateOptions,
+      );
+    });
 
-    const updateMembersGrossPersonalBalance = updateArr.map(
-      async (eachupdate) => {
-        const updateOption = session ? { new: true, session } : { new: true };
-        return await ShareDetailModel.findOneAndUpdate(
-          { id: eachupdate.id },
-          {
-            grossPersonalBalance: eachupdate.grossPersonalBalanceUpdated,
-            totalPersonalprofit: eachupdate.totalPersonalprofitUpdated,
-            state: eachupdate.stateUpdated,
-            inDebt: eachupdate.inDebtUpdate,
-            debtAmmount: eachupdate.debtAmmountUpdate,
-          },
-          updateOption,
-        );
-      },
-    );
-
+    // Wait for all updates to complete
     const result = await Promise.all(updateMembersGrossPersonalBalance);
 
-    const bannerGrosstotalBalanceUpdate = session
-      ? await BannerServeces.updateBannerGrossTotalBalance(session)
-      : await BannerServeces.updateBannerGrossTotalBalance();
+    // Update banner gross total balance
+    if (session) {
+      await BannerServeces.updateBannerGrossTotalBalance(session);
+    } else {
+      await BannerServeces.updateBannerGrossTotalBalance();
+    }
 
     return result;
   } catch (err: any) {
-    console.log('error occared in calclutionForExpences');
-    throw Error(err.message || 'error occared in calclutionForExpences');
+    console.error("Error occurred in calclutionForGrossReductionOrAddition:", err.message);
+    throw new Error(err.message || "Error occurred during gross reduction or addition calculation");
   }
 };
-
-
 
 
 export const investmentUtillFunctions = {

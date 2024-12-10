@@ -112,7 +112,7 @@ const deleteMember = asyncCatch(async (req, res) => {
   responseHandeler(res, {
     status: 200,
     success: true,
-    message: 'members role has ben deleted',
+    message: 'members has ben deleted',
     data: result,
   });
 });

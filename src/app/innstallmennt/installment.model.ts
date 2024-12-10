@@ -84,10 +84,13 @@ const InstallmentListSchema = new Schema<TInstallmentList>({
     required: true,
   },
   isDelited: { type: Boolean, default: false },
+},
+{
+  timestamps:true
 });
 
 InstallmentListSchema.pre('save', async function (next) {
-  console.log('yoo');
+  // console.log('yoo');
   const result = await InstallmentListtModel.findOne({
     id: this.id,
   });

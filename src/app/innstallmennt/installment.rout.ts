@@ -5,6 +5,8 @@ import {
   InstallmenntZodListSchema,
   MakeAInstallmentZodSchema,
 } from './installment.validation';
+import auth from '../../middleware/auth';
+import { UserRole } from '../user/user.constant';
 
 const installmenttRout = express.Router();
 // installmenttRout.post(
@@ -17,19 +19,19 @@ const installmenttRout = express.Router();
 
 installmenttRout.post(
   '/makeAInstallment',
-  validator(MakeAInstallmentZodSchema),
+  validator(MakeAInstallmentZodSchema),auth(UserRole.admin,UserRole.member,UserRole.precident,UserRole.vicePrecident),
   InstallmentController.makeAInstallment,
 );
 
 
 installmenttRout.get(
-  '/findInstallmentOfAllMembers',
+  '/findInstallmentOfAllMembers',auth(UserRole.admin,UserRole.member,UserRole.precident,UserRole.vicePrecident),
   InstallmentController.findInstallmentOfAllMembers,
 );
 
 
 installmenttRout.get(
-  '/findInstallmentOfAMember/:id',
+  '/findInstallmentOfAMember/:id',auth(UserRole.admin,UserRole.member,UserRole.precident,UserRole.vicePrecident),
   InstallmentController.findInstallmentOfSingleMember,
 );
 

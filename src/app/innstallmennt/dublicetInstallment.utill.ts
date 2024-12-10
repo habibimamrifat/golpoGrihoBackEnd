@@ -35,6 +35,7 @@ const installmentLOwerLimitCheck = async (
     } else {
       const numberOfAccuredShare = await ShareDetailModel.findOne({
         id: memberId,
+        isDelited:false
       });
       if (numberOfAccuredShare) {
         const isInstallmentLowerLimitAccordingToShare =
@@ -57,6 +58,9 @@ const installmentLOwerLimitCheck = async (
         {
           throw Error(`you are trying to pass installment Which is low. according to your accured shareit should me minimum ${isInstallmentLowerLimitAccordingToShare}`)
         }
+      }
+      else{
+        throw Error("this user must have Been Deleted. Or something went wrong !!")
       }
     }
   }

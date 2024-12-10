@@ -24,7 +24,7 @@ const auth=(...requeredUserRole:TUserRole[])=>{
             }
             else if (decoded)
             {
-                console.log("decoded", decoded)
+                // console.log("decoded", decoded)
                 
                 const decodedRole = (decoded as JwtPayload).role
                 if(requeredUserRole && ! requeredUserRole.includes(decodedRole))
