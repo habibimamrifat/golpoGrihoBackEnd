@@ -3,6 +3,7 @@ import responseHandeler from '../../utility/responseHandeler';
 import { adminServeces } from './admin.services';
 
 const findAllMember = asyncCatch(async (req, res) => {
+  // console.log("user found", req.user)
   const result = await adminServeces.findAllMember();
   responseHandeler(res, {
     status: 200,
@@ -34,7 +35,7 @@ const findPrecedentAndVp = asyncCatch(async (req, res) => {
 
 const acceptOrCacelmemberRequest = asyncCatch(async (req, res) => {
   const { id, requestState } = req.body;
-  // console.log(req.body)
+  console.log("req User",req.user)
   const result = await adminServeces.acceptOrCacelmemberRequest(
     id,
     requestState

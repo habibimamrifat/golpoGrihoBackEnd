@@ -1,3 +1,6 @@
+import { UserRole } from "./user.constant"
+
+
 export type TUser={
     id:string,
     email:string,
@@ -9,3 +12,5 @@ export type TUser={
     isLoggedIn:boolean,
     isDelited:boolean,
 }
+
+export type TUserRole = keyof typeof UserRole

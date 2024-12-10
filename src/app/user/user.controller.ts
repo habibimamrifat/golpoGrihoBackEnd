@@ -6,8 +6,7 @@ const createMember = asyncCatch(
   async (req, res, next) => {
     const member = req.body.member;
     const user = req.body.user;
-    // console.log("i am the member",member)
-    // console.log('yoooo', member, user);
+
 
     const result = await UserServices.createAMemberInDb(user, member);
 
@@ -20,45 +19,8 @@ const createMember = asyncCatch(
   },
 );
 
-const logInUser = asyncCatch(
-  async (req, res, next) => {
-    const { email, password } = req.params;
 
-    const result = await UserServices.logInUser(email, password);
-    res.status(200).json({
-      success: true,
-      message: 'log in successfull',
-      body: result,
-    });
-  },
-);
-
-const logOutUser = asyncCatch(
-  async (req, res, next) => {
-    const { user_id} = req.params;
-
-    const result = await UserServices.logOutUser(user_id);
-    res.status(200).json({
-      success: true,
-      message: 'log out successfull',
-      body: result,
-    });
-  },
-);
-
-const resetPassword = asyncCatch(
-  async (req, res, next) => {
-    const { email,newPassword} = req.params;
-
-    const result = await UserServices.resetPassword(email,newPassword);
-    res.status(200).json({
-      success: true,
-      message: 'password changed',
-      body: result,
-    });
-  },
-);
 
 export const UserController = {
-  createMember,logInUser,logOutUser,resetPassword
+  createMember
 };

@@ -1,13 +1,14 @@
 import express from "express"
 import { vpOrPController } from "./vpOrP.controller"
-import precedentOrVpValidatr from "./precedentOrVp.Validator"
 import acceptOrDenyVpOrpSchema from "./vpOrPInput.validate"
 import validator from "../../middleware/validator"
+import { UserRole } from "../user/user.constant"
+import auth from "../../middleware/auth"
 
 const precedentOrVpRout = express.Router()
 
-precedentOrVpRout.get("/findAllWaitingInstallment/:VpOrPId",precedentOrVpValidatr,vpOrPController.findAllWaitingInstallment)
+precedentOrVpRout.get("/findAllWaitingInstallment/:VpOrPId",auth(UserRole.precident, UserRole.vicePrecident),vpOrPController.findAllWaitingInstallment)
 
-precedentOrVpRout.patch("/approveOrDeclineAnInstallment/:VpOrPId",precedentOrVpValidatr,validator(acceptOrDenyVpOrpSchema), vpOrPController.approveOrDeclineAnInstallment)
+precedentOrVpRout.patch("/approveOrDeclineAnInstallment/:VpOrPId",auth(UserRole.precident, UserRole.vicePrecident),validator(acceptOrDenyVpOrpSchema), vpOrPController.approveOrDeclineAnInstallment)
 
 export default precedentOrVpRout

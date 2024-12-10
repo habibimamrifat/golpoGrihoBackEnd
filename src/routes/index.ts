@@ -6,6 +6,8 @@ import adminRouts from "../app/admin/admin.rout"
 import precedentOrVpRout from "../app/precedentOrVp/presedentOrvp.router"
 import bannerRout from "../app/banner/banner.router"
 import investOrExpenncesRouts from "../app/ivestmetOrExpeces/ivestOrExpence.routs"
+import path from "path"
+import authRouts from "../app/auth/auth.routs"
 
 
 
@@ -41,6 +43,10 @@ const mouleRouts = [
     {
         path:"/investOrExpennces",
         router:investOrExpenncesRouts
+    },
+    {
+        path:"/auth",
+        router:authRouts
     }
 ]
 

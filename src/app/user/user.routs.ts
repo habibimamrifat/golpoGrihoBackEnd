@@ -7,8 +7,6 @@ const userRouts = express.Router();
 
 
 userRouts.post('/createUser', validator(memberValidations.createMemberZodSchema), UserController.createMember);
-userRouts.get("/logIn/:email/:password", UserController.logInUser)
-userRouts.patch("/logOut/:user_id", UserController.logOutUser)
-userRouts.patch("/resetPassword/:email/:newPassword",UserController.resetPassword)
+
 
 export const UserRouts = userRouts;
