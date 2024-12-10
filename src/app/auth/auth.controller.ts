@@ -17,9 +17,13 @@ const logInUser = asyncCatch(
   
   const logOutUser = asyncCatch(
     async (req, res, next) => {
-      const { user_id} = req.params;
+      const accessToken = req.headers?.authorization;
+      if(!accessToken)
+      {
+        throw Error ("the access token is missing,or you are not authorised")
+      }
   
-      const result = await authServices.logOutUser(user_id);
+      const result = await authServices.logOutUser(accessToken);
       res.status(200).json({
         success: true,
         message: 'log out successfull',

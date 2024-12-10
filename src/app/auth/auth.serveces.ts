@@ -3,7 +3,7 @@ import memberModel from '../members/member.model';
 import { UserModel } from '../user/user.model';
 import config from '../../config';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { TUser } from '../user/user.interface';
 
 const logInUser = async (email: string, password: string) => {
@@ -67,9 +67,18 @@ const logInUser = async (email: string, password: string) => {
   }
 };
 
-const logOutUser = async (_id: string) => {
+const logOutUser = async (accessToken: string) => {
+  let id=""
+  jwt.verify(accessToken, config.jwtTokennSecret as string,function(err,decode){
+    if(err)
+    {
+      throw Error ("You are not authorised")
+    }
+    id=(decode as JwtPayload).id
+  })
+
   const result = await UserModel.findOneAndUpdate(
-    { _id: new mongoose.Types.ObjectId(_id) },
+    { id: id },
     {
       isLoggedIn: false,
     },
