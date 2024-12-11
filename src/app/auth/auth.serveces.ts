@@ -5,6 +5,7 @@ import config from '../../config';
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { TUser } from '../user/user.interface';
+import createToken from './auth.utill';
 
 const logInUser = async (email: string, password: string) => {
   const user = await UserModel.findOne({ email: email }).select('+password');
@@ -36,18 +37,19 @@ const logInUser = async (email: string, password: string) => {
           };
           //   console.log('tocanized data', tokenizeData);
 
-          const approvalToken = jwt.sign(
-            tokenizeData,
-            config.jwtTokennSecret as string,
-            { expiresIn: '2d' },
-          );
+          const approvalToken = createToken(tokenizeData,config.jwtTokennSecret as string,config.jwtTokennExireIn as string)
 
-          const result = {
-            token: approvalToken,
-            userData: member,
+          const refreshToken = createToken(tokenizeData,config.jwtRefreshTokenSecret as string,config.jwtRefreshTokennExpireIn as string)
+
+
+        
+          return {
+             approvalToken,
+             refreshToken,
+             member,
           };
 
-          return result;
+          
         } else {
           throw new Error(
             'something Went wronng or your accounnt has been deleted',

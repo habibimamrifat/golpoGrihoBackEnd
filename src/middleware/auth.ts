@@ -18,22 +18,41 @@ const auth = (...requeredUserRole: TUserRole[]) => {
       authorizatioToken,
       config.jwtTokennSecret as string,
     );
+
     if (!decoded) {
       throw Error('tocan decodaing Failed');
     }
 
-    const {id,role,iat,exp}= decoded as JwtPayload
+    const { id, role, iat, exp } = decoded as JwtPayload;
 
     if (requeredUserRole && !requeredUserRole.includes(role)) {
       throw Error('UnAuthorised User');
     }
 
-    const findUser = await UserModel.findOne({id:id})
+    const findUser = await UserModel.findOne({ id: id, requestState:"approved",isDelited:false });
+    if (!findUser) {
+      throw Error('Unauthorised User or forbitten Access');
+    }
+
     // console.log(findUser)
+    if ((findUser.passwordChangeTime || findUser.logOutTime) && iat) {
+      const passwordChangedAt = findUser.passwordChangeTime
+        ? new Date(findUser.passwordChangeTime).getTime() / 1000
+        : null;
 
-    
+      const logOutTimedAt = findUser.logOutTime
+        ? new Date(findUser.logOutTime).getTime() / 1000
+        : null;
 
-    
+      if (
+        (passwordChangedAt && passwordChangedAt > iat) ||
+        (logOutTimedAt && logOutTimedAt > iat)
+      ) {
+        throw  Error(
+          'Unauthorized User: Try logging in again'
+        );
+      }
+    }
 
     req.user = decoded as JwtPayload;
     next();
