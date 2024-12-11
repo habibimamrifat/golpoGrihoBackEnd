@@ -8,6 +8,6 @@ export const logInSchema = z.object({
 
 // Schema for changePassword
 export const changePasswordSchema = z.object({
-  oldPassword: z.string({required_error:"old pasworrd is must for log in"}),
-  password: z.string({required_error:"new pasworrd is must for log in"})
+  oldPassword: z.string({required_error:"old pasworrd is must for change Password"}),
+  newPassword: z.string({required_error:"new pasworrd is must for change Password"})
 });

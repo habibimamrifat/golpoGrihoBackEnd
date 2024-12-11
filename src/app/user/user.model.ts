@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TUser } from './user.interface';
 import bcrypt from "bcrypt"
 import config from '../../config';
+import { date } from 'zod';
 
 const userSchema = new Schema<TUser>(
   {
@@ -21,6 +22,10 @@ const userSchema = new Schema<TUser>(
     needPasswoedChange: {
       type: Boolean,
     },
+    passwordChangeTime:{
+      type:Date,
+      required:false
+    },
     role: {
       type: String,
       enum: ['admin', 'member', 'precident', 'vicePrecident'],
@@ -39,6 +44,10 @@ const userSchema = new Schema<TUser>(
     isLoggedIn:{
       type:Boolean,
       default:false
+    },
+    logOutTime:{
+      type:Date,
+      required:false
     },
     isDelited: {
       type: Boolean,

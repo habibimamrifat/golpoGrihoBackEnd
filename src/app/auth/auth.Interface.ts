@@ -4,5 +4,5 @@ export type logIn ={
 }
 export type changePassword ={
     oldPassword:string,
-    password:string
+    newPassword:string
 }

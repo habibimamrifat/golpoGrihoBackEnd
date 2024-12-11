@@ -7,7 +7,7 @@ import { UserRole } from "../user/user.constant"
 
 const adminRouts = express.Router()
 
-adminRouts.get("/allMembers",adminConntroller.findAllMember)
+adminRouts.get("/allMembers",auth(UserRole.admin),adminConntroller.findAllMember)
 adminRouts.get("/allMemberRequests",adminConntroller.findAllMemberRequests)
 adminRouts.get("/findPrecedentAndVp",adminConntroller.findPrecedentAndVp)
 

@@ -47,8 +47,7 @@ const logInUser = async (email: string, password: string) => {
             userData: member,
           };
 
-          return result
-          
+          return result;
         } else {
           throw new Error(
             'something Went wronng or your accounnt has been deleted',
@@ -68,51 +67,81 @@ const logInUser = async (email: string, password: string) => {
 };
 
 const logOutUser = async (accessToken: string) => {
-  let id=""
-  jwt.verify(accessToken, config.jwtTokennSecret as string,function(err,decode){
-    if(err)
-    {
-      throw Error ("You are not authorised")
-    }
-    id=(decode as JwtPayload).id
-  })
+  let id = '';
+  jwt.verify(
+    accessToken,
+    config.jwtTokennSecret as string,
+    function (err, decode) {
+      if (err) {
+        throw Error('You are not authorised');
+      }
+      id = (decode as JwtPayload).id;
+    },
+  );
 
   const result = await UserModel.findOneAndUpdate(
     { id: id },
     {
       isLoggedIn: false,
+      logOutTime: new Date(),
     },
     { new: true },
   );
   return result;
 };
 
-const resetPassword = async (email: string, password: string) => {
-  const findUser = await UserModel.findOne({ email: email });
-  if (findUser) {
-    const newPassword = await bcrypt.hash(
-      password,
-      Number(config.Bcrypt_SaltRound),
-    );
+const resetPassword = async (
+  authorizationToken: string,
+  oldPassword: string,
+  newPassword: string,
+) => {
+  // Decode the token
+  const decoded = jwt.verify(
+    authorizationToken,
+    config.jwtTokennSecret as string,
+  ) as JwtPayload;
 
-    // console.log(newPassword);
-
-    const updatePassword = await UserModel.findOneAndUpdate(
-      { email: email },
-      { password: newPassword },
-      { new: true },
-    );
-
-    // console.log(updatePassword);
-
-    if (!updatePassword) {
-      throw Error('something went wrong changing password');
-    }
-
-    return { passwordChanged: true };
-  } else {
-    throw Error(' the email didnt match');
+  if (!decoded || !decoded.id) {
+    throw Error('Invalid or unauthorized token');
   }
+
+  const { id } = decoded;
+
+  // Find the user and include the password field
+  const findUser = await UserModel.findOne({ id }).select('+password');
+
+  if (!findUser || !findUser.password) {
+    throw Error('User not found or password missing');
+  }
+
+  // Compare old password with hashed password
+  const isPasswordMatch = await bcrypt.compare(oldPassword, findUser.password);
+
+  if (!isPasswordMatch) {
+    throw Error('Old password did not match');
+  }
+
+  // Hash the new password
+  const newPasswordHash = await bcrypt.hash(
+    newPassword,
+    Number(config.Bcrypt_SaltRound),
+  );
+
+  // Update the user's password and passwordChangeTime
+  const updatePassword = await UserModel.findOneAndUpdate(
+    { id },
+    {
+      password: newPasswordHash,
+      passwordChangeTime: new Date(),
+    },
+    { new: true },
+  );
+
+  if (!updatePassword) {
+    throw Error('Error updating password');
+  }
+
+  return { passwordChanged: true };
 };
 
 export const authServices = {
