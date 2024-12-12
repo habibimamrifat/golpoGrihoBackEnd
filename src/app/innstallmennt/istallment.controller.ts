@@ -1,19 +1,17 @@
 import asyncCatch from '../../utility/asynncCatch';
+import getIdFromJwtToken from '../../utility/getIDFromJwtToken';
 import { InstallmentServices } from './installment.services';
 
-// const createIstallmenntList = asyncCatch(async (req, res) => {
-//   const depositData = req.body;
-//   const result = await InstallmentServices.createInstallmentList(depositData);
-//   res.status(200).json({
-//     success: true,
-//     message: 'deposit List created successfully',
-//     body: result,
-//   });
-// });
+
 
 const makeAInstallment = asyncCatch(async (req, res) => {
   const depositData = req.body;
-  const result = await InstallmentServices.makeAInstallment(depositData);
+  const {authorization}=req.headers 
+  // console.log(authorization)
+  const id = getIdFromJwtToken(authorization as string)
+  // console.log(id)
+
+  const result = await InstallmentServices.makeAInstallment(id,depositData);
   res.status(200).json({
     success: true,
     message: 'installment created successfully',

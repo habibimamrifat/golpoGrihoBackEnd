@@ -1,13 +1,9 @@
 import { installmetUtill } from './dublicetInstallment.utill';
 import { InstallmentListtModel } from './installment.model';
 
-// const createInstallmentList = async (depositData: TInstallment) => {
-//   const result = await InstallmentListtModel.create(depositData);
-//   return result;
-// };
 
-const makeAInstallment = async (depositData: any) => {
-  const { id, deposit } = depositData;
+const makeAInstallment = async (id:string,depositData: any) => {
+  const { deposit } = depositData;
 
   const satisfyLimit =await installmetUtill.installmentLOwerLimitCheck(id,deposit.installmentAmount,deposit.numberOfMonth);
   if (satisfyLimit) {

@@ -7,8 +7,8 @@ import auth from "../../middleware/auth"
 
 const precedentOrVpRout = express.Router()
 
-precedentOrVpRout.get("/findAllWaitingInstallment/:VpOrPId",auth(UserRole.precident, UserRole.vicePrecident),vpOrPController.findAllWaitingInstallment)
+precedentOrVpRout.get("/findAllWaitingInstallment",auth(UserRole.precident, UserRole.vicePrecident),vpOrPController.findAllWaitingInstallment)
 
-precedentOrVpRout.patch("/approveOrDeclineAnInstallment/:VpOrPId",auth(UserRole.precident, UserRole.vicePrecident),validator(acceptOrDenyVpOrpSchema), vpOrPController.approveOrDeclineAnInstallment)
+precedentOrVpRout.patch("/approveOrDeclineAnInstallment",auth(UserRole.precident, UserRole.vicePrecident),validator(acceptOrDenyVpOrpSchema), vpOrPController.approveOrDeclineAnInstallment)
 
 export default precedentOrVpRout

@@ -11,7 +11,7 @@ const logInUser = asyncCatch(async (req, res, next) => {
   const { approvalToken, refreshToken, member } = result;
 
   res.cookie("refreshToken", refreshToken,{
-    secure:config.NODE_ENV === "production" ? true :false,
+    secure:config.NODE_ENV === "production",
     httpOnly:true
   })
 
@@ -56,8 +56,21 @@ const resetPassword = asyncCatch(async (req, res, next) => {
   });
 });
 
+const refreshToken=asyncCatch(async(req,res,next)=>{
+ 
+  const {refreshToken}= req.cookies
+  const result = await authServices.refreshToken(refreshToken);
+
+  res.status(200).json({
+    success: true,
+    message: 'log token refreshed',
+    body: result
+  });
+})
+
 export const authController = {
   logInUser,
   logOutUser,
   resetPassword,
+  refreshToken
 };

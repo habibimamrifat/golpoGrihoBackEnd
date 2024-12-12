@@ -1,4 +1,5 @@
 import asyncCatch from "../../utility/asynncCatch";
+import getIdFromJwtToken from "../../utility/getIDFromJwtToken";
 import responseHandeler from "../../utility/responseHandeler";
 import { vpOrPServices } from "./vpOrP.services";
 
@@ -15,8 +16,13 @@ const findAllWaitingInstallment = asyncCatch(async(req,res)=>{
 })
 
 const approveOrDeclineAnInstallment = asyncCatch(async(req,res)=>{
-    const {VpOrPId}= req.params
+
+    const {authorization}=req.headers
+
+    const VpOrPId= getIdFromJwtToken(authorization as string)
+   
     const {membrId, installmentStatus}= req.body
+    console.log(req.body)
     const result =await vpOrPServices.approveOrDeclineAnInstallment(VpOrPId,membrId,installmentStatus)
     responseHandeler(res,
        {

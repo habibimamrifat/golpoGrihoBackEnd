@@ -2,8 +2,11 @@ import asyncCatch from '../../utility/asynncCatch';
 import responseHandeler from '../../utility/responseHandeler';
 import { adminServeces } from './admin.services';
 
+
 const findAllMember = asyncCatch(async (req, res) => {
   // console.log("user found", req.user)
+  console.log(req.cookies)
+
   const result = await adminServeces.findAllMember();
   responseHandeler(res, {
     status: 200,

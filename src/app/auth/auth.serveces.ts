@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+
 import memberModel from '../members/member.model';
 import { UserModel } from '../user/user.model';
 import config from '../../config';
@@ -146,8 +146,60 @@ const resetPassword = async (
   return { passwordChanged: true };
 };
 
+const refreshToken= async (refreshToken:string)=>{
+  const decoded = jwt.verify(
+    refreshToken,
+    config.jwtRefreshTokenSecret as string,
+  );
+
+  if (!decoded) {
+    throw Error('tocan decodaing Failed');
+  }
+
+  const { id,iat,role } = decoded as JwtPayload;
+
+ 
+
+  const findUser = await UserModel.findOne({ id: id, requestState:"approved",isDelited:false });
+  if (!findUser) {
+    throw Error('Unauthorised User or forbitten Access');
+  }
+
+  // console.log(findUser)
+  if ((findUser.passwordChangeTime || findUser.logOutTime) && iat) {
+    const passwordChangedAt = findUser.passwordChangeTime
+      ? new Date(findUser.passwordChangeTime).getTime() / 1000
+      : null;
+
+    const logOutTimedAt = findUser.logOutTime
+      ? new Date(findUser.logOutTime).getTime() / 1000
+      : null;
+
+    if (
+      (passwordChangedAt && passwordChangedAt > iat) ||
+      (logOutTimedAt && logOutTimedAt > iat)
+    ) {
+      throw  Error(
+        'Unauthorized User: Try logging in again'
+      );
+    }
+  }
+
+  const JwtPayload = {
+    id:findUser.id,
+    role: role
+  }
+  const approvalToken = createToken(JwtPayload,config.jwtTokennSecret as string,config.jwtTokennExireIn as string)
+
+  return{
+    approvalToken
+  }
+
+}
+
 export const authServices = {
   logInUser,
   logOutUser,
   resetPassword,
+  refreshToken
 };

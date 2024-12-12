@@ -10,6 +10,8 @@ import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerMOdel } from '../banner/banner.model';
 
 const findAllMember = async () => {
+
+ 
   const allMambers = await memberModel
     .find()
     .populate('installmentList')
