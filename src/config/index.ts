@@ -11,5 +11,8 @@ export default {
   jwtTokennSecret:process.env.jwtTokenSecret,
   jwtRefreshTokenSecret:process.env.jwtRefreshTokenSecret,
   jwtTokennExireIn:process.env.jwtTokennExireIn,
-  jwtRefreshTokennExpireIn:process.env.jwtRefreshTokennExpireIn
+  jwtRefreshTokennExpireIn:process.env.jwtRefreshTokennExpireIn,
+  FrontEndHostedPort:process.env.FrontEndHostedPort,
+  GmailAppPassword:process.env.gmailAppPassword,
+  companyGmail:process.env.companyGmail
 };

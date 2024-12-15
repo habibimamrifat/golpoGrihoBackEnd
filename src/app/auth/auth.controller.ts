@@ -40,11 +40,11 @@ const logOutUser = asyncCatch(async (req, res, next) => {
   });
 });
 
-const resetPassword = asyncCatch(async (req, res, next) => {
+const changePassword = asyncCatch(async (req, res, next) => {
   const { oldPassword, newPassword } = req.body;
   const authorizationToken = req.headers?.authorization as string;
 
-  const result = await authServices.resetPassword(
+  const result = await authServices.changePassword(
     authorizationToken,
     oldPassword,
     newPassword,
@@ -68,9 +68,40 @@ const refreshToken=asyncCatch(async(req,res,next)=>{
   });
 })
 
+const forgetPassword =asyncCatch(async(req, res, next)=>{
+  const id=req.body?.id
+  const result = await authServices.forgetPassword(id)
+  res.status(200).json({
+    success: true,
+    message: 'reset password token genarated check your email',
+    body: null
+  });
+})
+
+const resetPassword = asyncCatch(async (req, res, next) => {
+  const { id, newPassword } = req.body;
+  const authorizationToken = req.headers?.authorization as string;
+  // console.log(req.body)
+
+  const result = await authServices.resetPassword(
+    authorizationToken,
+    id,
+    newPassword,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'password changed',
+    body: result,
+  });
+});
+
+
 export const authController = {
   logInUser,
   logOutUser,
-  resetPassword,
-  refreshToken
+  changePassword,
+  refreshToken,
+  forgetPassword,
+  resetPassword
 };

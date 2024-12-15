@@ -27,3 +27,16 @@ export const refreshTokenSchema = z.object({
     }),
   }),
 });
+
+export const forgetPassword =z.object({
+  body:z.object({
+    id:z.string({required_error:"please provide your id to procide"})
+  })
+})
+
+export const resetPassword =z.object({
+  body:z.object({
+    id:z.string({required_error:"please provide your id to procide"}),
+    newPassword:z.string({required_error:"please provide your id to procide"})
+  })
+})

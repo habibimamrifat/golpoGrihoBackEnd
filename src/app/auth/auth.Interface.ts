@@ -6,3 +6,6 @@ export type changePassword ={
     oldPassword:string,
     newPassword:string
 }
+export type forgetPassword={
+    id:string
+}
