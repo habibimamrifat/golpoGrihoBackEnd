@@ -6,6 +6,7 @@ import {
 import { InvestOrExpensesModel } from './investOrExpence.model';
 import { investmentUtillFunctions } from './expenceLemitationCheck.utill';
 import { BannerServeces } from '../banner/banner.servicces';
+import emailSendBulkOrSingle from '../../utility/emailSendBulkOrSingle';
 
 const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
   const session = await mongoose.startSession();
@@ -115,6 +116,20 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
 
           await session.commitTransaction();
           await session.endSession();
+
+
+          // send email to all
+          const messageConversition = `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>${payload.ExpencesType} Update</h2>
+                <p><strong>Expence Id:</strong>${idGenarated}</p>
+                <p><strong>Name:</strong>${payload.motiveName}</p>
+                <p><strong>Spent Ammount:</strong>${payload.ammountSpent}</p>
+                <p><strong>Message:</strong>Check your accout for detail</p>
+              </div>`;
+
+            await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+          // send email to all
           return result;
         } 
         else {
@@ -226,6 +241,22 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
 
     // commit the changes
     await session.commitTransaction();
+
+
+     // send email to all
+     const messageConversition = `
+     <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+       <h2>Investment Update</h2>
+       <p><strong>Investment Id:</strong>${payload.id}</p>
+       <p><strong>Investment Outcome:</strong>${payload.cycleType}</p>
+       <p><strong>Ammount:</strong>${payload.amount}</p>
+       <p><strong>Message:</strong>Check your accout for detail</p>
+     </div>`;
+
+   await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+ // send email to all
+
+
     return updateGrossOutcomeOfaInvestment;
   } catch (err: any) {
     await session.abortTransaction();
@@ -243,6 +274,21 @@ const disContinueANInvestment = async (investmentId: string) => {
     { isDiscontinued: true },
     { new: true },
   );
+  
+
+
+  // send email to all
+  const messageConversition = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2>Investment Update</h2>
+    <p><strong>Investment Id:</strong>${investmentId}</p>
+    <p><strong>Investment Status:</strong>Discontinued</p>
+    <p><strong>Message:</strong>Check your accout for detail</p>
+  </div>`;
+
+  await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+  // send email to all
+
   return result;
 };
 

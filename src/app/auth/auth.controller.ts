@@ -1,3 +1,4 @@
+import { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
 import asyncCatch from '../../utility/asynncCatch';
 import { authServices } from './auth.serveces';
@@ -96,6 +97,16 @@ const resetPassword = asyncCatch(async (req, res, next) => {
   });
 });
 
+const collectProfileData=asyncCatch(async(req, res,next)=>{
+const user = req.user as JwtPayload
+const result = await authServices.collectProfileData(user.id)
+res.status(200).json({
+  success: true,
+  message: 'password changed',
+  body: result,
+});
+})
+
 
 export const authController = {
   logInUser,
@@ -103,5 +114,6 @@ export const authController = {
   changePassword,
   refreshToken,
   forgetPassword,
-  resetPassword
+  resetPassword,
+  collectProfileData
 };

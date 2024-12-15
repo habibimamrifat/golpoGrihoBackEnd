@@ -293,6 +293,11 @@ const resetPassword = async (
 
 };
 
+const collectProfileData =async(id:string)=>{
+  const result = await memberModel.findOne({id:id}).populate("user").populate("acccuiredShareDetail").populate("installmentList")
+  return result
+}
+
 export const authServices = {
   logInUser,
   logOutUser,
@@ -300,4 +305,5 @@ export const authServices = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  collectProfileData
 };

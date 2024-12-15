@@ -13,6 +13,7 @@ authRouts.post("/changePassword",auth(UserRole.admin,UserRole.member,UserRole.pr
 authRouts.post("/refresh-token", validator(refreshTokenSchema), authController.refreshToken)
 authRouts.post("/forgetPassword",validator(forgetPassword),authController.forgetPassword)
 authRouts.post("/resetPassword",validator(resetPassword),authController.resetPassword)
+authRouts.post("/profile",authController.collectProfileData)
 
 
 
