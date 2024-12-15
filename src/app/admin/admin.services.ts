@@ -8,10 +8,9 @@ import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { BannerServeces } from '../banner/banner.servicces';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
 import { BannerMOdel } from '../banner/banner.model';
+import { sendEmail } from '../../utility/sendEmail';
 
 const findAllMember = async () => {
-
- 
   const allMambers = await memberModel
     .find()
     .populate('installmentList')
@@ -89,6 +88,29 @@ const acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
 
     await session.commitTransaction();
 
+    // send member a email that his or her innstallment has been accepted down
+
+    const user = await UserModel.findOne({ id: id });
+    if (user) {
+      // now turn that updated installment into a readable text
+      const messageConversition = `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Welcome To Golpo Griho Society</h2>
+                <h3>Your Detail</h3>
+                <p><strong>Your Member ID:</strong> ${user.id}</p>
+                <p><strong>Message:</strong>"You are approved to LOG In from now on. Use Email and Password to log in to your account"</p>
+              </div>`;
+
+      // console.log('messageConversition', messageConversition);
+
+      await sendEmail(
+        user.email,
+        `Member Request ${requestState}`,
+        messageConversition,
+      );
+    }
+    // send member a email that his or her innstallment has been accepted up
+
     return result;
   } catch (err) {
     await session.abortTransaction();
@@ -109,6 +131,28 @@ const makePrecidentOrVp = async (id: string, role: string) => {
       { role: role },
       { new: true },
     );
+    // send member a email that his or her innstallment has been accepted down
+
+    const user = await UserModel.findOne({ id: id });
+    if (user) {
+      // now turn that updated installment into a readable text
+      const messageConversition = `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <h2>Congratulations !</h2>
+                <p><strong>Member ID:</strong> ${user.id}</p>
+                <h3>You are degignated as ${role}</h3>
+                <p><strong>Message:</strong>"With a promise of being Honest annd Transparent your journy as ${role} begins"</p>
+              </div>`;
+
+      // console.log('messageConversition', messageConversition);
+
+      await sendEmail(
+        user.email,
+        `Designation Updated to ${role}`,
+        messageConversition,
+      );
+    }
+    // send member a email that his or her innstallment has been accepted up
     return result;
   }
 };
@@ -132,6 +176,10 @@ const updateAccuiredNumberOfShareOfAMember = async (
     await BannerServeces.updateBannerTotalumberOfShare(session);
 
     await session.commitTransaction();
+
+
+
+    
     return result;
   } catch (err: any) {
     // console.log(err)
