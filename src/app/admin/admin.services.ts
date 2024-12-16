@@ -132,17 +132,17 @@ const makePrecidentOrVp = async (id: string, role: string) => {
       { role: role },
       { new: true },
     );
-    // send member a email 
+    // send member a email
 
     const user = await UserModel.findOne({ id: id });
     if (user) {
       // now turn that updated installment into a readable text
       const messageConversition = `
               <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>Congratulations !</h2>
+                <h2>Congratulations!</h2>
                 <p><strong>Member ID:</strong> ${user.id}</p>
-                <h3>You are degignated as ${role}</h3>
-                <p><strong>Message:</strong>"With a promise of being Honest annd Transparent your journy as ${role} begins"</p>
+                <h3>You are designated as ${role}</h3>
+                <p><strong>Message:</strong> "With a promise of being Honest and Transparent, your journey as ${role} begins."</p>
               </div>`;
 
       // console.log('messageConversition', messageConversition);
@@ -153,7 +153,7 @@ const makePrecidentOrVp = async (id: string, role: string) => {
         messageConversition,
       );
     }
-    // send member a email 
+    // send member a email
     return result;
   }
 };
@@ -180,14 +180,17 @@ const updateAccuiredNumberOfShareOfAMember = async (
 
     const messageConversition = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-      <h2>ALERT !</h2>
-      <h2>Member Id : ${id}</h2>
-      <p><strong>Message:</strong>"Now you are owner of ${numberOfShares} shares"</p>
+      <h2>ALERT!</h2>
+      <h2>Member ID: ${id}</h2>
+      <p><strong>Message:</strong> "You are now the owner of ${numberOfShares} shares."</p>
     </div>`;
-    const user = await UserModel.findOne({id:id})
-    if(user)
-    {
-      await emailSendBulkOrSingle(user.email as string,"Number of Accured Share Changed",messageConversition)
+    const user = await UserModel.findOne({ id: id });
+    if (user) {
+      await emailSendBulkOrSingle(
+        user.email as string,
+        'Number of accrued shares has changed',
+        messageConversition,
+      );
     }
     return result;
   } catch (err: any) {
@@ -205,28 +208,24 @@ const removePresedentOrVpRole = async (id: string) => {
     { new: true },
   );
 
-   // send member a email 
+  // send member a email
 
-   const user = await UserModel.findOne({ id: id });
-   if (user) {
-     // now turn that updated installment into a readable text
-     const messageConversition = `
+  const user = await UserModel.findOne({ id: id });
+  if (user) {
+    // now turn that updated installment into a readable text
+    const messageConversition = `
              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-               <h2>Congratulations !</h2>
-               <p><strong>Member ID:</strong> ${user.id}</p>
-               <h3>You are degignated as member</h3>
-               <p><strong>Message:</strong>"With a promise of being Honest annd Transparent your journy as member begins"</p>
-             </div>`;
+                <h2>ALERT!</h2>
+                <p><strong>Member ID:</strong> ${user.id}</p>
+                <h3>You are designated as a member</h3>
+                <p><strong>Message:</strong> "With a promise of being Honest and Transparent, your journey as a member begins."</p>
+              </div>`;
 
-     // console.log('messageConversition', messageConversition);
+    // console.log('messageConversition', messageConversition);
 
-     await sendEmail(
-       user.email,
-       `Designatated as Member`,
-       messageConversition,
-     );
-   }
-   // send member a email 
+    await sendEmail(user.email, `Designated as Member`, messageConversition);
+  }
+  // send member a email
   return result;
 };
 
@@ -239,11 +238,11 @@ const updateValueOfEachShare = async (valueOfEachShare: string) => {
 
   const messageConversition = `
               <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>ALERT !</h2>
-                <p><strong>Message:</strong>"Value of Each Share is ${valueOfEachShare} now on"</p>
+                <h2>ALERT!</h2>
+                <p><strong>Message:</strong> "The value of each share is now ${valueOfEachShare}."</p>
               </div>`;
 
-  await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+  await emailSendBulkOrSingle('all', 'SHARE VALUE UPDATE', messageConversition);
   return result;
 };
 
@@ -274,27 +273,27 @@ const deleteMember = async (id: string) => {
     await session.commitTransaction();
     await BannerServeces.updateBannerTotalMember();
 
-    // send member a email 
+    // send member a email
 
-   const user = await UserModel.findOne({ id: id });
-   if (user) {
-     // now turn that updated installment into a readable text
-     const messageConversition = `
+    const user = await UserModel.findOne({ id: id });
+    if (user) {
+      // now turn that updated installment into a readable text
+      const messageConversition = `
              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-               <h2>Your Position as a member of GolpoGriho is Dconcricated</h2>
-               <p><strong>Member ID:</strong> ${user.id}</p>
-               <p><strong>Message:</strong>"Thank you for being part of this journy"</p>
-             </div>`;
+                <h2>Account Deletion Alert</h2>
+                <p><strong>Member ID:</strong> ${user.id}</p>
+                <p><strong>Message:</strong> "You are no longer member of Golpo Griho.Thank you for being part of this journey."</p>
+              </div>`;
 
-     // console.log('messageConversition', messageConversition);
+      // console.log('messageConversition', messageConversition);
 
-     await sendEmail(
-       user.email,
-       `Designatated as Member`,
-       messageConversition,
-     );
-   }
-   // send member a email 
+      await sendEmail(
+        user.email,
+        `Deleted Member`,
+        messageConversition,
+      );
+    }
+    // send member a email
 
     return {
       message: 'Member and related data successfully marked as deleted',
