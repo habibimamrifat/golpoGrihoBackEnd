@@ -121,14 +121,14 @@ const createInvestOrExpaces = async (payload: TIvestOrExpennces) => {
           // send email to all
           const messageConversition = `
               <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>${payload.ExpencesType} Update</h2>
                 <p><strong>Expence Id:</strong>${idGenarated}</p>
+                <p><strong>Expence Type:</strong>${payload.ExpencesType}</p>
                 <p><strong>Name:</strong>${payload.motiveName}</p>
                 <p><strong>Spent Ammount:</strong>${payload.ammountSpent}</p>
                 <p><strong>Message:</strong>Check your accout for detail</p>
               </div>`;
 
-            await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+            await emailSendBulkOrSingle("all","Expence Update",messageConversition)
           // send email to all
           return result;
         } 
@@ -253,7 +253,7 @@ const giveAInputInInvestmentCycle = async (payload: TIvestmentCycleIput) => {
        <p><strong>Message:</strong>Check your accout for detail</p>
      </div>`;
 
-   await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+   await emailSendBulkOrSingle("all","Investment Cycle Update",messageConversition)
  // send email to all
 
 
@@ -286,7 +286,7 @@ const disContinueANInvestment = async (investmentId: string) => {
     <p><strong>Message:</strong>Check your accout for detail</p>
   </div>`;
 
-  await emailSendBulkOrSingle("all","SHARE VALUE UPDATE",messageConversition)
+  await emailSendBulkOrSingle("all","Investment Update",messageConversition)
   // send email to all
 
   return result;

@@ -13,7 +13,7 @@ const createMember = asyncCatch(
     responseHandeler(res, {
       status: 200,
       success: true,
-      message: 'Member is created',
+      message: 'Your request to join is on hold. We will let you know soon',
       data: result,
     });
   },
