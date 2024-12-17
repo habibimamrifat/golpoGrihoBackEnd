@@ -71,54 +71,62 @@ const findPrecedentAndVp = async () => {
   return result;
 };
 
-const acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
+const  acceptOrCacelmemberRequest = async (id: string, requestState: string) => {
   const session = await mongoose.startSession();
+  let transactionCommitted = false; // Track if the transaction was committed
+
   try {
     session.startTransaction();
-    const result = await UserModel.findOneAndUpdate(
-      { id: id },
-      { requestState: requestState },
-      { new: true, session },
+
+    // Update the user's request state in the database
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { id },
+      { requestState },
+      { new: true, session }
     );
-    if (!result) {
-      throw Error('member not found');
+
+    if (!updatedUser) {
+      throw Error('Member not found');
     }
 
+    // Update banner statistics
     await BannerServeces.updateBannerTotalMember(session);
     await BannerServeces.updateBannerTotalumberOfShare(session);
 
+    // Commit the transaction
     await session.commitTransaction();
+    transactionCommitted = true; // Mark the transaction as committed
 
-    // send member a email that his or her innstallment has been accepted down
-
-    const user = await UserModel.findOne({ id: id });
+    // Send notification email to the member
+    const user = await UserModel.findOne({ id });
     if (user) {
-      // now turn that updated installment into a readable text
-      const messageConversition = `
-              <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <h2>Welcome To Golpo Griho Society</h2>
-                <h3>Your Detail</h3>
-                <p><strong>Your Member ID:</strong> ${user.id}</p>
-                <p><strong>Message:</strong>"You are approved to LOG In from now on. Use Email and Password to log in to your account"</p>
-              </div>`;
-
-      // console.log('messageConversition', messageConversition);
+      const messageContent = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>Welcome To Golpo Griho Society</h2>
+          <h3>Your Details</h3>
+          <p><strong>Member ID:</strong> ${user.id}</p>
+          <p><strong>Message:</strong> You are approved to log in from now on. Use your email and password to access your account.</p>
+        </div>
+      `;
 
       await sendEmail(
         user.email,
         `Member Request ${requestState}`,
-        messageConversition,
+        messageContent
       );
     }
-    // send member a email that his or her innstallment has been accepted up
 
-    return result;
+    return updatedUser;
   } catch (err) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw Error('something wennt wrong');
+    if (!transactionCommitted) {
+      await session.abortTransaction(); // Rollback the transaction on error
+    }
+    throw Error('Something went wrong during the process'); // Throw an error with a meaningful message
+  } finally {
+    await session.endSession(); // Ensure the session is properly ended
   }
 };
+
 
 const makePrecidentOrVp = async (id: string, role: string) => {
   const Isfound = await adminUtill.rollCheck(role);
