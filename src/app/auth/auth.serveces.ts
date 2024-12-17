@@ -8,69 +8,37 @@ import createToken from './auth.utill';
 import { sendEmail } from '../../utility/sendEmail';
 
 const logInUser = async (email: string, password: string) => {
-  const user = await UserModel.findOne({ email: email }).select('+password');
+  // Fetch user with required fields and verify password
+  const user = await UserModel.findOne({ email }).select("+password +requestState").lean();
+  if (!user) throw new Error("Email didn't match");
 
-  if (user) {
-    // console.log(user?.password,password)
-    const matched = await bcrypt.compare(password, user.password);
-    if (matched) {
-      if (user.requestState === 'approved') {
-        const approveLogIn = await UserModel.findOneAndUpdate(
-          { id: user.id, isDelited: false },
-          {
-            isLoggedIn: true,
-          },
-          { new: true },
-        );
-        if (approveLogIn) {
-          const member = await memberModel
-            .findOne({ id: user.id })
-            .populate('user')
-            .populate('installmentList');
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatched) throw new Error("Password didn't match");
 
-          // console.log(member);
-          //   create jwt token here
-
-          const tokenizeData = {
-            id: member?.id,
-            role: (member?.user as TUser)?.role,
-          };
-          //   console.log('tocanized data', tokenizeData);
-
-          const approvalToken = createToken(
-            tokenizeData,
-            config.jwtTokennSecret as string,
-            config.jwtTokennExireIn as string,
-          );
-
-          const refreshToken = createToken(
-            tokenizeData,
-            config.jwtRefreshTokenSecret as string,
-            config.jwtRefreshTokennExpireIn as string,
-          );
-
-          return {
-            approvalToken,
-            refreshToken,
-            member,
-          };
-        } else {
-          throw new Error(
-            'something Went wronng or your accounnt has been deleted',
-          );
-        }
-      } else {
-        throw new Error(
-          `your request to join GOLPO GRIHO is ${user.requestState}`,
-        );
-      }
-    } else {
-      throw new Error("password didn't match");
-    }
-  } else {
-    throw new Error("Email didn't match");
+  // Check account approval state
+  if (user.requestState !== "approved") {
+    throw new Error(`Your request to join GOLPO GRIHO is ${user.requestState}`);
   }
+
+  // Update `isLoggedIn` in one query and fetch updated user details
+  const approveLogIn = await UserModel.findOneAndUpdate(
+    { id: user.id, isDelited: false },
+    { isLoggedIn: true },
+    { new: true, fields: "id role" } // Select only required fields
+  ).lean();
+
+  if (!approveLogIn) {
+    throw new Error("Something went wrong or your account has been deleted");
+  }
+
+  // Tokenize user data
+  const tokenizeData = { id: approveLogIn.id, role: approveLogIn.role };
+  const approvalToken = createToken(tokenizeData, config.jwtTokennSecret as string, config.jwtTokennExireIn as string);
+  const refreshToken = createToken(tokenizeData, config.jwtRefreshTokenSecret as string, config.jwtRefreshTokennExpireIn as string);
+
+  return { approvalToken, refreshToken, approveLogIn };
 };
+
 
 const logOutUser = async (accessToken: string) => {
   let id = '';

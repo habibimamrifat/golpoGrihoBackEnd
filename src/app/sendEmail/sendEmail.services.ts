@@ -5,7 +5,7 @@ import { TSendEmail } from "./sendEmail.interface";
 const sendEmail = async (payload:TSendEmail) => {
   const { sendTo, subject, message } = payload;
 
-  const messageModifyed=`<p>${message}</p>`
+  const messageModifyed=`<div>${message}</div>`
 
   await emailSendBulkOrSingle(sendTo,subject,messageModifyed)
 

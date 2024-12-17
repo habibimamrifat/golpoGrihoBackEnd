@@ -4,28 +4,24 @@ import asyncCatch from '../../utility/asynncCatch';
 import { authServices } from './auth.serveces';
 
 const logInUser = asyncCatch(async (req, res, next) => {
-  const payload = req.body;
-  // console.log(payload);
+  const { email, password } = req.body;
+  console.log("Login Payload:", { email }); // Minimal logging for debugging
 
-  const result = await authServices.logInUser(payload.email, payload.password);
+  const { approvalToken, refreshToken, approveLogIn } = await authServices.logInUser(email, password);
 
-  const { approvalToken, refreshToken, member } = result;
-
-  res.cookie("refreshToken", refreshToken,{
-    secure:config.NODE_ENV === "production",
-    httpOnly:true
-  })
-
+  res.cookie("refreshToken", refreshToken, {
+    secure: config.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "strict", // Extra CSRF protection
+  });
 
   res.status(200).json({
     success: true,
-    message: 'log in successfull',
-    body: {
-      approvalToken,
-      member,
-    },
+    message: "Login successful",
+    body: { approvalToken, approveLogIn },
   });
 });
+
 
 const logOutUser = asyncCatch(async (req, res, next) => {
   const accessToken = req.headers?.authorization;
