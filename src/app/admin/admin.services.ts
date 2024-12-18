@@ -53,7 +53,7 @@ const findAllMemberRequests = async () => {
 const findPrecedentAndVp = async () => {
   const result: TMember[] = [];
   const users = await UserModel.find({
-    role: { $in: ['precident', 'vicePrecident'] },
+    role: { $in: ['President', 'Vice president'] },
   });
   const presedentOrVpDataPromise = users.map(async (user) => {
     const memberData = await memberModel

@@ -8,7 +8,7 @@ const findSingleMember = asyncCatch(async (req, res) => {
   const result = await memberServices.findSingleMember(id);
   res.status(200).json({
     success: true,
-    message: 'the member is created successfully',
+    message: 'The member is fetched successfully',
     body: result,
   });
 });

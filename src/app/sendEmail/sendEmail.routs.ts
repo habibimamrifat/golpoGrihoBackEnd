@@ -4,6 +4,6 @@ import { UserRole } from "../user/user.constant"
 import { sendEmailConreoller } from "./sendEmail.controller"
 const sendEmailRout = express.Router()
 
-sendEmailRout.post("/sensEmail", auth(UserRole.admin,UserRole.precident,UserRole.vicePrecident),sendEmailConreoller.sendEmail)
+sendEmailRout.post("/sendEmail", auth(UserRole.admin,UserRole.precident,UserRole.vicePrecident),sendEmailConreoller.sendEmail)
 
 export default sendEmailRout

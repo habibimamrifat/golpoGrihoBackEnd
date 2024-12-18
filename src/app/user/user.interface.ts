@@ -7,7 +7,7 @@ export type TUser={
     password:string,
     needPasswoedChange:boolean,
     passwordChangeTime?:Date,
-    role:"admin"|"member"|"precident"|"vicePrecident",
+    role:"admin"|"member"|"President"|"Vice president",
     status:"activeMember"|"blockedMember",
     requestState:"approved"|"waiting"|"canceled",
     isLoggedIn:boolean,

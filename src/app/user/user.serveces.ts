@@ -7,7 +7,6 @@ import { TUser } from './user.interface';
 import { UserModel } from './user.model';
 import mongoose from 'mongoose';
 import { ShareDetailModel } from '../shareDetail/shareDetail.model';
-import config from '../../config';
 import { BannerServeces } from '../banner/banner.servicces';
 
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {

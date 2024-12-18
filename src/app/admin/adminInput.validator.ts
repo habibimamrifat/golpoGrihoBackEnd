@@ -9,7 +9,7 @@ const AcceptRequestValidator = z.object({
 const MakePrecidentOrVp = z.object({
     body:z.object({
         id: z.string(),
-    role: z.enum(["precident","vicePrecident"]),
+    role: z.enum(["President","Vice president"]),
     })
     
 });
