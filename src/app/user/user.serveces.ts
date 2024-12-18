@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { TMember } from '../members/member.interface';
 import memberModel from '../members/member.model';

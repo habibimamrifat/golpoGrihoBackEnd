@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TUser } from './user.interface';
 import bcrypt from "bcrypt"
 import config from '../../config';
-import { date } from 'zod';
+
 
 const userSchema = new Schema<TUser>(
   {
