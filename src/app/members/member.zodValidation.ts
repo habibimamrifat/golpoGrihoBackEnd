@@ -3,7 +3,6 @@ import { z } from 'zod';
 // Define individual sub-schemas
 const nameZodSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
-  middleName: z.string().optional(), // Optional as per TName type
   lastName: z.string().min(1, 'Last name is required'),
 });
 
@@ -11,6 +10,9 @@ const addressZodSchema = z.object({
   streetAddress: z.string().optional(),
   area: z.string().min(1, 'Area is required'),
   city: z.string().min(1, 'City is required'),
+  // newly added
+  postOffice: z.string().min(1, 'City is required'),
+  // newly added
   postCode: z
     .string()
     .min(4, 'Post code should be 4 digits')
@@ -22,11 +24,14 @@ const addressZodSchema = z.object({
 
 const nominiZodSchema = z.object({
   name: nameZodSchema,
-  nominiImg: z.string(),
+  nominiImg: z.string().min(1, 'Nominee image is required'),
+  // neew added
+  relation: z.string(),
+  // neew added
   email: z.string().email('Invalid email format'),
   nominiPresentAddress: addressZodSchema,
   nominiPermanentAddress: addressZodSchema,
-  nominyImg: z.string().min(1, 'Nominee image is required'),
+  
   mob: z
     .string()
     .regex(/^\d+$/, 'Mobile number should contain only digits')
@@ -55,6 +60,20 @@ const createMemberZodSchema = z.object({
     }),
     member: z.object({
       memberImg: z.string(),
+
+      // new some added down
+      age: z.number(),
+      occupation: z.string(),
+      fathersName: z.string(),
+      mothersName: z.string(),
+      wifesName: z.string().optional(),
+      emergencyNumber: z
+        .string()
+        .regex(/^\d+$/, 'Mobile number should contain only digits')
+        .min(11, 'Mobile number cannot be less than 11 digits')
+        .max(11, 'Mobile number cannot exceed 11 digits'),
+      // new some added down
+
       name: nameZodSchema,
       mob: z
         .string()
@@ -88,10 +107,12 @@ const updateAddressZodSchema = addressZodSchema.partial();
 const updateNominiZodSchema = z.object({
   name: updateNameZodSchema,
   nominiImg: z.string(),
+  // neew added
+  relation: z.string(),
+  // neew added
   email: z.string().email('Invalid email format'),
   nominiPresentAddress: updateAddressZodSchema,
   nominiPermanentAddress: updateAddressZodSchema,
-  nominyImg: z.string().min(1, 'Nominee image is required'),
   mob: z
     .string()
     .regex(/^\d+$/, 'Mobile number should contain only digits')
@@ -115,6 +136,19 @@ const memmberDataUpdateZodSchema = z.object({
   body: z.object({
     updatedData: z.object({
       memberImg: z.string().optional(),
+      // new some added down
+      age: z.number().optional(),
+      occupation: z.string().optional(),
+      fathersName: z.string().optional(),
+      mothersName: z.string().optional(),
+      wifesName: z.string().optional(),
+      emergencyNumber: z
+        .string()
+        .regex(/^\d+$/, 'Mobile number should contain only digits')
+        .min(11, 'Mobile number cannot be less than 11 digits')
+        .max(11, 'Mobile number cannot exceed 11 digits')
+        .optional(),
+      // new some added up
       name: updateNameZodSchema.optional(),
       mob: z
         .string()

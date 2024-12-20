@@ -1,4 +1,3 @@
-
 import { InstallmentListtModel } from '../innstallmennt/installment.model';
 import { TMember } from '../members/member.interface';
 import memberModel from '../members/member.model';
@@ -12,12 +11,14 @@ import { BannerServeces } from '../banner/banner.servicces';
 const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   const id = await idGearator(memberData.name.lastName);
   user.id = id;
+  let message=""
 
   try {
     const isFirstUser = await UserModel.find();
     if (isFirstUser.length === 0) {
       user.role = 'admin';
       user.requestState = 'approved';
+      message = 'You are designated as an Admin.';
     }
   } catch (err) {
     throw Error('something went wrong in in userController isFirstUser');
@@ -47,11 +48,12 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
 
     await session.commitTransaction();
 
+    await BannerServeces.updateBannerTotalMember();
+    await BannerServeces.updateBannerTotalumberOfShare();
 
-    await BannerServeces.updateBannerTotalMember()
-    await BannerServeces.updateBannerTotalumberOfShare()
+    return { memberInstance: memberInstance, message: message };
 
-    return memberInstance;
+
   } catch (err: any) {
     // Abort transaction on error
     await session.abortTransaction();
@@ -61,8 +63,6 @@ const createAMemberInDb = async (user: Partial<TUser>, memberData: TMember) => {
   }
 };
 
-
 export const UserServices = {
   createAMemberInDb,
-  
 };

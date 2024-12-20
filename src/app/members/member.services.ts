@@ -71,11 +71,11 @@ const updateAmemberData = async (id: string, updatedData: Partial<TMember>) => {
     );
   }
 
-
+console.log(modifiedUpdatedData)
 
   const result = await memberModel.findOneAndUpdate(
     { id: id },
-    { modifiedUpdatedData },
+    { ...modifiedUpdatedData },
     {
       new: true,
     },

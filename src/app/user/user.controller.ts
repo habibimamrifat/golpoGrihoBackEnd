@@ -13,8 +13,8 @@ const createMember = asyncCatch(
     responseHandeler(res, {
       status: 200,
       success: true,
-      message: 'Your request to join is on hold. We will let you know soon',
-      data: result,
+      message: result.message || 'Your request to join is on hold. We will let you know soon',
+      data: result.memberInstance,
     });
   },
 );

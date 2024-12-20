@@ -3,7 +3,6 @@ import { TAddress, TMember, TName, TNomini } from './member.interface';
 
 const nameSchema = new Schema<TName>({
   firstName: { type: String, required: true },
-  middleName: { type: String, required: false },
   lastName: { type: String, required: true },
 });
 
@@ -12,6 +11,9 @@ const addressSchema = new Schema<TAddress>({
   area: { type: String, required: true },
   city: { type: String, required: true },
   postCode: { type: String, required: true },
+  // newly added
+  postOffice: { type: String, required: true },
+  // newly added
   district: { type: String, required: true },
   division: { type: String, required: true },
   country: { type: String, default: 'Bangladesh' },
@@ -20,10 +22,13 @@ const addressSchema = new Schema<TAddress>({
 const nominiSchema = new Schema<TNomini>({
   name: { type: nameSchema, required: true },
   nominiImg: { type: String, required: true },
+  //newly added
+  relation: { type: String, required: true },
+  //newly added
   email: { type: String, required: true, unique: true },
   nominiPresentAddress: { type: addressSchema, required: true },
   nominiPermanentAddress: { type: addressSchema, required: true },
-  nominyImg: { type: String, required: true },
+  
   mob: {
     type: String,
     required: true,
@@ -55,6 +60,22 @@ const memberSchema = new Schema<TMember>({
   id: { type: String, required: true ,unique:true},
   memberImg: { type: String, required: true },
   name: { type: nameSchema, required: true },
+  // new some added down
+  age:{type:Number, required: true},
+  occupation:{ type: String, required: true },
+  fathersName:{ type: String, required: true },
+  mothersName:{ type: String, required: true },
+  wifesName:{ type: String, required: false },
+  emergencyNumber:{
+    type: String,
+    required: true,
+    validate: {
+      validator: (value: string) => /^\d+$/.test(value), // Only digits allowed
+      message: 'Mobile number should contain only digits.',
+    },
+    unique: true,
+  },
+  // new some added up
   user: {
     type: Schema.Types.ObjectId,
     unique: true,
